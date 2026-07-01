@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<title>Wafer Defect Annotator v2</title>
+<style>
+:root{
+  --bg:#0e1116;--panel:#161b22;--line:#2a3140;--text:#dbe2ee;
+  --muted:#8a93a6;--accent:#5ec8e8;--warn:#e8a05e;--bad:#e85e5e;--good:#6fbf73;
+}
+*{box-sizing:border-box;}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Segoe UI',Helvetica,Arial,sans-serif;font-size:13px;}
+header{padding:16px 24px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+header h1{margin:0;font-size:16px;flex:1;}
+.badge{background:#1f3b2a;color:var(--good);padding:3px 10px;border-radius:10px;font-size:11px;font-weight:600;}
+.badge.warn{background:#3b2f1f;color:var(--warn);}
+.badge.info{background:#172433;color:var(--accent);}
+/* ---- IMPORT SCREEN ---- */
+#import-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:calc(100vh - 54px);padding:32px;}
+.drop-zone{width:560px;max-width:100%;border:2px dashed var(--line);border-radius:16px;padding:48px 32px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;}
+.drop-zone.over{border-color:var(--accent);background:#0a1a24;}
+.drop-zone:hover{border-color:var(--accent);}
+.drop-icon{font-size:48px;margin-bottom:12px;opacity:.5;}
+.drop-zone h2{margin:0 0 8px;font-size:18px;}
+.drop-zone p{color:var(--muted);margin:4px 0;font-size:13px;}
+.drop-zone .sub{font-size:11px;color:var(--muted);margin-top:16px;line-height:1.8;}
+input[type=file]{display:none;}
+.import-progress{margin-top:24px;width:560px;max-width:100%;}
+.prog-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:12px;}
+.prog-item .pi-name{flex:1;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.prog-item .pi-status{font-size:11px;}
+.pi-ok{color:var(--good);}
+.pi-err{color:var(--bad);}
+.prog-bar-wrap{width:100%;height:4px;background:var(--line);border-radius:2px;margin-top:12px;overflow:hidden;}
+.prog-bar{height:100%;background:var(--accent);border-radius:2px;transition:width .2s;}
+/* ---- MAIN APP ---- */
+#app-screen{display:none;}
+.layout{display:grid;grid-template-columns:290px 1fr 310px;height:calc(100vh - 54px);}
+.sidebar,.rightbar{overflow-y:auto;border-right:1px solid var(--line);}
+.rightbar{border-right:none;border-left:1px solid var(--line);}
+.main{overflow-y:auto;padding:18px 22px;}
+.pane{padding:14px 16px;border-bottom:1px solid var(--line);}
+.pane h2{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin:0 0 10px;}
+select,input[type=text]{width:100%;background:#0b0e13;border:1px solid var(--line);color:var(--text);border-radius:6px;padding:5px 8px;font-size:12px;margin-top:3px;}
+label.field{font-size:11px;color:var(--muted);display:block;margin-top:8px;}
+button{border:none;border-radius:6px;padding:6px 11px;font-size:12px;font-weight:600;cursor:pointer;margin-top:6px;}
+.btn-primary{background:var(--accent);color:#06222b;}
+.btn-secondary{background:transparent;border:1px solid var(--line);color:var(--text);}
+.btn-danger{background:#3b1f1f;border:1px solid var(--bad);color:var(--bad);}
+.btn-export{background:#23304b;border:1px solid var(--accent);color:var(--accent);}
+.btn-row{display:flex;gap:6px;flex-wrap:wrap;}
+.wafer-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:8px;}
+.wcard{border:1px solid var(--line);border-radius:7px;padding:5px;background:#11151c;cursor:pointer;transition:border-color .15s;}
+.wcard:hover{border-color:var(--accent);}
+.wcard.selected{border-color:var(--accent);background:#0b1a22;}
+.wcard.annotated{border-color:var(--good);}
+.wcard .wlabel{font-size:9.5px;text-align:center;margin-top:3px;color:var(--muted);}
+.wcard canvas{display:block;margin:0 auto;border-radius:3px;}
+.tag{display:inline-block;padding:2px 6px;border-radius:8px;font-size:10px;font-weight:700;}
+.tag.None,.tag.Random{background:#1f3b2a;color:var(--good);}
+.tag.Edge-Ring,.tag.Edge-Loc{background:#3b2f1f;color:var(--warn);}
+.tag.Center,.tag.Donut,.tag.Local{background:#3b1f1f;color:var(--bad);}
+.tag.Scratch{background:#23304b;color:var(--accent);}
+.tag.Near-full{background:#3b1f1f;color:#ff8a8a;}
+.tag.Unknown{background:#222;color:var(--muted);}
+.pattern-btns{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:8px;}
+.pbtn{border:1px solid var(--line);background:#0b0e13;color:var(--text);border-radius:6px;padding:6px;font-size:11px;cursor:pointer;text-align:center;}
+.pbtn:hover{border-color:var(--accent);}
+.pbtn.active{background:var(--accent);color:#06222b;border-color:var(--accent);}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;}
+.stat-box{background:#11151c;border:1px solid var(--line);border-radius:6px;padding:7px;text-align:center;}
+.stat-num{font-size:18px;font-weight:700;color:var(--accent);}
+.stat-label{font-size:10px;color:var(--muted);margin-top:2px;}
+.hist-row{display:flex;align-items:center;gap:5px;margin-top:4px;}
+.hist-bar-wrap{flex:1;height:7px;background:var(--line);border-radius:4px;overflow:hidden;}
+.hist-bar{height:100%;background:var(--accent);border-radius:4px;}
+.hist-lbl{font-size:10px;color:var(--muted);min-width:24px;text-align:right;}
+.hist-name{font-size:10px;color:var(--text);min-width:68px;}
+.rec-row{display:flex;align-items:center;gap:5px;padding:4px 0;border-bottom:1px solid var(--line);font-size:11px;}
+.rn{color:var(--muted);min-width:54px;}
+.rv{flex:1;}
+textarea{width:100%;background:#0b0e13;border:1px solid var(--line);color:var(--text);border-radius:6px;padding:5px 8px;font-size:11px;resize:vertical;margin-top:3px;}
+.hint{color:var(--muted);font-size:11px;line-height:1.6;margin-top:4px;}
+.section-title{font-size:12px;font-weight:700;margin:12px 0 5px;}
+.record-list{max-height:240px;overflow-y:auto;margin-top:6px;}
+/* lot tabs */
+.lot-tabs{display:flex;gap:4px;flex-wrap:wrap;padding:10px 16px;border-bottom:1px solid var(--line);}
+.lot-tab{background:#0b0e13;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:4px 10px;font-size:11px;cursor:pointer;}
+.lot-tab.active{background:var(--accent);color:#06222b;border-color:var(--accent);}
+/* main view tabs */
+.view-tabs{display:flex;gap:0;border-bottom:1px solid var(--line);background:var(--bg);}
+.view-tab{padding:9px 18px;font-size:12px;font-weight:600;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:color .15s;}
+.view-tab:hover{color:var(--text);}
+.view-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+/* confusion matrix */
+.cm-wrap{overflow-x:auto;margin-top:12px;}
+.cm-table{border-collapse:collapse;font-size:10.5px;}
+.cm-table th{padding:4px 6px;color:var(--muted);font-weight:600;text-align:center;font-size:10px;}
+.cm-table td{width:36px;height:30px;text-align:center;border:1px solid var(--line);font-size:11px;font-weight:600;cursor:default;position:relative;}
+.cm-table td.diag{border:1px solid #3a5a3a;}
+.cm-label{writing-mode:vertical-rl;transform:rotate(180deg);padding:4px 2px;font-size:10px;color:var(--muted);white-space:nowrap;}
+/* per-class metrics */
+.metrics-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:12px;}
+.metrics-table th{border-bottom:1px solid var(--line);padding:6px 8px;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.5px;}
+.metrics-table td{padding:6px 8px;border-bottom:1px solid var(--line);}
+.pill{display:inline-block;padding:1px 7px;border-radius:8px;font-size:10px;font-weight:700;}
+.pill.ok{background:#1f3b2a;color:var(--good);}
+.pill.warn{background:#3b2f1f;color:var(--warn);}
+.pill.bad{background:#3b1f1f;color:var(--bad);}
+/* sufficiency bars */
+.suf-row{display:flex;align-items:center;gap:6px;margin-top:5px;}
+.suf-name{font-size:11px;min-width:80px;color:var(--text);}
+.suf-bar-outer{flex:1;height:10px;background:var(--line);border-radius:5px;overflow:hidden;}
+.suf-bar-inner{height:100%;border-radius:5px;transition:width .3s;}
+.suf-count{font-size:10px;color:var(--muted);min-width:52px;text-align:right;}
+/* accuracy ring text */
+.acc-row{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap;}
+.acc-box{background:#11151c;border:1px solid var(--line);border-radius:8px;padding:10px 14px;text-align:center;flex:1;min-width:80px;}
+.acc-num{font-size:22px;font-weight:700;}
+.acc-lbl{font-size:10px;color:var(--muted);margin-top:2px;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <h1>Wafer Defect Annotator v2</h1>
+  <span class="badge info" id="lot-badge">尚無 Lot</span>
+  <span class="badge" id="total-badge">累計 0 筆標注</span>
+  <span class="badge warn" id="session-badge">本批 0/0</span>
+  <button class="btn-secondary" id="back-btn" style="display:none;margin-top:0;">＋ 匯入新 Lot</button>
+</header>
+
+<!-- IMPORT SCREEN -->
+<div id="import-screen">
+  <div class="drop-zone" id="drop-zone">
+    <div class="drop-icon">📂</div>
+    <h2>拖曳匯入原始測試資料</h2>
+    <p>支援兩種方式</p>
+    <div class="sub">
+      <b style="color:var(--accent)">① ZIP 檔</b>：直接拖曳整批 ZIP（如 RK30906.zip），包含 25 個單片 CSV<br>
+      <b style="color:var(--accent)">② 多選 CSV</b>：Ctrl/Cmd 全選 25 個單片 CSV 後拖曳，或點此開啟選擇器
+    </div>
+  </div>
+  <input type="file" id="file-input" accept=".csv,.zip" multiple>
+  <div class="import-progress" id="import-progress" style="display:none;">
+    <div class="prog-bar-wrap"><div class="prog-bar" id="prog-bar" style="width:0%"></div></div>
+    <div id="prog-list" style="margin-top:10px;max-height:300px;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app-screen">
+  <div class="lot-tabs" id="lot-tabs"></div>
+  <div class="layout">
+    <!-- LEFT: wafer grid -->
+    <div class="sidebar">
+      <div class="pane" style="padding-bottom:6px;">
+        <h2>Wafer Map（點選標注）</h2>
+        <div style="display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);">
+          <span style="color:var(--good);">●</span>Pass　
+          <span style="color:var(--bad);">●</span>Fail　
+          <span style="border:1px solid var(--good);border-radius:3px;padding:0 4px;">綠框</span>=已標注
+        </div>
+      </div>
+      <div class="pane">
+        <div class="wafer-grid" id="wafer-grid"></div>
+      </div>
+    </div>
+
+    <!-- MAIN: tabbed view -->
+    <div style="display:flex;flex-direction:column;overflow:hidden;height:100%;">
+      <div class="view-tabs">
+        <div class="view-tab active" id="tab-map" onclick="switchView('map')">Wafer Map</div>
+        <div class="view-tab" id="tab-eval" onclick="switchView('eval')">模型評估 <span id="eval-badge" style="background:#3b2f1f;color:var(--warn);border-radius:8px;padding:1px 6px;font-size:10px;margin-left:4px;"></span></div>
+      </div>
+      <div class="main" id="main-content" style="flex:1;overflow-y:auto;">
+        <div class="hint" style="margin-top:60px;text-align:center;">← 點選左側 Wafer 縮圖進行標注</div>
+      </div>
+      <div class="main" id="eval-content" style="flex:1;overflow-y:auto;display:none;padding:18px 22px;"></div>
+    </div>
+
+    <!-- RIGHT: annotation + stats + export -->
+    <div class="rightbar">
+      <div class="pane">
+        <h2>標注 Pattern</h2>
+        <div id="no-sel" class="hint">請先選取一片 Wafer</div>
+        <div id="anno-panel" style="display:none;">
+          <div class="section-title" id="anno-title"></div>
+          <div class="hint">演算法建議：<span id="algo-suggest" class="tag Unknown">--</span></div>
+          <div class="hint" id="algo-cause" style="margin-top:2px;"></div>
+          <div class="pattern-btns" id="pattern-btns"></div>
+          <label class="field">製程站 / 機台（選填）
+            <input type="text" id="proc-input" placeholder="e.g. Litho / TEL-01">
+          </label>
+          <label class="field">根因備註（選填）
+            <textarea id="note-input" rows="3" placeholder="疑似原因、與其他片的關聯…"></textarea>
+          </label>
+          <div class="btn-row">
+            <button class="btn-primary" id="save-btn">儲存標注</button>
+            <button class="btn-secondary" id="next-btn">下一片 →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="pane">
+        <h2>累積統計</h2>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="stat-num" id="s-total">0</div><div class="stat-label">總標注筆數</div></div>
+          <div class="stat-box"><div class="stat-num" id="s-lots">0</div><div class="stat-label">已累積 Lot</div></div>
+        </div>
+        <div class="section-title">Pattern 分布</div>
+        <div id="hist"></div>
+      </div>
+
+      <div class="pane">
+        <h2>匯出訓練資料</h2>
+        <div class="hint">每列含：LotID, WaferID, 6 項空間特徵, GT_pattern, 製程站, 備註, fail_rate, wafer_map_png(base64)</div>
+        <div class="btn-row">
+          <button class="btn-export" id="exp-csv">CSV</button>
+          <button class="btn-export" id="exp-json">JSON</button>
+          <button class="btn-export" id="exp-feat">特徵 CSV</button>
+        </div>
+        <div class="section-title">最近標注</div>
+        <div class="record-list" id="record-list"></div>
+        <button class="btn-danger" id="clear-btn" style="margin-top:10px;">清除所有已儲存數據</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- JSZip CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script>
+// ============================================================
+// CONSTANTS
+// ============================================================
+const PATTERNS = ['None','Random','Local','Edge-Ring','Edge-Loc','Center','Donut','Scratch','Near-full'];
+const STORAGE_KEY = 'wafer_anno_v3';
+
+// ============================================================
+// PERSISTENT STORE
+// ============================================================
+let db = (() => { try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }catch(e){ return []; } })();
+function saveDB(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(db)); }catch(e){} }
+
+// ============================================================
+// STATE
+// ============================================================
+let lots = {};        // lotId -> { waferData: {wid -> {dies,feat,dec,ext}}, meta: {lotId, testDate, tester} }
+let activeLotId = '';
+let selectedWid = null;
+let bigCanvas = null;
+
+// ============================================================
+// IMPORT SCREEN
+// ============================================================
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('over'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('over'));
+dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('over'); handleFiles(e.dataTransfer.files); });
+fileInput.addEventListener('change', e => handleFiles(e.target.files));
+document.getElementById('back-btn').addEventListener('click', () => {
+  document.getElementById('import-screen').style.display='flex';
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('back-btn').style.display='none';
+  document.getElementById('import-progress').style.display='none';
+  document.getElementById('prog-list').innerHTML='';
+  document.getElementById('prog-bar').style.width='0%';
+  fileInput.value='';
+});
+
+async function handleFiles(files){
+  const arr = Array.from(files);
+  if(arr.length === 0) return;
+  showProgress();
+  const csvFiles = []; // {name, text}
+
+  for(let f of arr){
+    if(f.name.toLowerCase().endsWith('.zip')){
+      addProgItem(f.name,'解壓中…','');
+      try{
+        const zip = await JSZip.loadAsync(f);
+        const entries = Object.values(zip.files).filter(e=>!e.dir && e.name.toLowerCase().endsWith('.csv'));
+        for(let entry of entries){
+          const text = await entry.async('string');
+          csvFiles.push({name: entry.name.split('/').pop(), text});
+        }
+        updateProgItem(f.name,`✓ 解壓出 ${entries.length} 個 CSV`,'pi-ok');
+      }catch(e){
+        updateProgItem(f.name,'✗ 解壓失敗','pi-err');
+      }
+    } else if(f.name.toLowerCase().endsWith('.csv')){
+      const text = await f.text();
+      csvFiles.push({name: f.name, text});
+    }
+  }
+
+  if(!csvFiles.length){ addProgItem('錯誤','未找到有效 CSV','pi-err'); return; }
+
+  // parse each CSV
+  const lotMap = {}; // lotId -> [parsed wafer]
+  let done=0;
+  for(let {name, text} of csvFiles){
+    const result = parseSingleCSV(text, name);
+    if(result){
+      if(!lotMap[result.lotId]) lotMap[result.lotId]=[];
+      lotMap[result.lotId].push(result);
+      addProgItem(name, `✓ #${result.waferId} (${result.dies.length} die, fail ${(result.failRate*100).toFixed(1)}%)`, 'pi-ok');
+    } else {
+      addProgItem(name, '✗ 格式無法識別','pi-err');
+    }
+    done++;
+    document.getElementById('prog-bar').style.width = (done/csvFiles.length*100)+'%';
+  }
+
+  // build lot data
+  for(let [lotId, wlist] of Object.entries(lotMap)){
+    buildLot(lotId, wlist);
+  }
+
+  setTimeout(()=>{
+    document.getElementById('import-screen').style.display='none';
+    document.getElementById('app-screen').style.display='block';
+    document.getElementById('back-btn').style.display='';
+    renderLotTabs();
+    if(!activeLotId) activeLotId = Object.keys(lots)[0];
+    switchLot(activeLotId);
+  }, 600);
+}
+
+// ============================================================
+// PARSE SINGLE WAFER CSV
+// ============================================================
+function parseSingleCSV(text, filename){
+  const lines = text.split(/\r\n|\n/);
+  let lotId='', waferId='', testDate='', tester='';
+  let colNamesLine=-1, dataStartLine=-1;
+
+  for(let i=0;i<lines.length;i++){
+    const l = lines[i];
+    if(/Lot\s+ID\s*:/i.test(l))   lotId   = l.split(':').slice(1).join(':').trim();
+    if(/Wafer\s+ID\s*:/i.test(l)) waferId = l.split(':').slice(1).join(':').trim();
+    if(/Test Start Date/i.test(l)) testDate = l.split(':').slice(1).join(':').trim();
+    if(/Tester ID/i.test(l))       tester   = l.split(':').slice(1).join(':').trim();
+    if(/^,,,,,,Contact/i.test(l) || /^,,,,,,VZ0/i.test(l)) colNamesLine = i;
+    if(/^Serial#\s*,/i.test(l)){ dataStartLine = i; break; }
+  }
+
+  // fallback: parse Lot/Wafer from filename e.g. RK30906-01...
+  if(!lotId || !waferId){
+    const m = filename.match(/^(RK\d+)-(\d+)/i);
+    if(m){ lotId=m[1]; waferId=`${m[1]}-${m[2]}`; }
+  }
+  if(!lotId || dataStartLine<0) return null;
+
+  // get measurement column names
+  let measCols = [];
+  if(colNamesLine>=0){
+    const parts = lines[colNamesLine].split(',').slice(6);
+    measCols = parts.map(c=>{const m=c.match(/^([A-Za-z0-9_]+)/); return m?m[1]:'';}).filter(Boolean);
+  }
+
+  // build final col name list: Serial, Site, Bin, SBin, X, Y, [meas...]
+  const allCols = ['Serial','Site','Bin','SBin','X','Y', ...measCols];
+
+  // parse data rows
+  const dies = [];
+  for(let i=dataStartLine+1; i<lines.length; i++){
+    const l = lines[i].trim();
+    if(!l) continue;
+    const parts = l.split(',');
+    if(parts.length < 6) continue;
+    const x = parseInt(parts[4]), y = parseInt(parts[5]);
+    const bin = (parts[2]||'').trim();
+    if(isNaN(x)||isNaN(y)) continue;
+    const obj = {x, y, bin, pass: bin==='1'};
+    // attach measurement values
+    for(let c=6; c<allCols.length && c<parts.length; c++){
+      obj[allCols[c]] = parts[c].trim()==='' ? null : parseFloat(parts[c]);
+    }
+    dies.push(obj);
+  }
+
+  // extract wafer number only (strip lot prefix) for display
+  const wnum = waferId.replace(lotId+'-','').replace(/^0/,'') || waferId;
+
+  return { lotId, waferId: wnum, waferId_full: waferId, testDate, tester, dies,
+    failRate: dies.length ? dies.filter(d=>!d.pass).length/dies.length : 0 };
+}
+
+// ============================================================
+// BUILD LOT
+// ============================================================
+function buildLot(lotId, wlist){
+  // global extent across all wafers in lot
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  wlist.forEach(w=>w.dies.forEach(d=>{ minX=Math.min(minX,d.x);maxX=Math.max(maxX,d.x);minY=Math.min(minY,d.y);maxY=Math.max(maxY,d.y); }));
+  const ext={minX,maxX,minY,maxY};
+
+  const waferData={};
+  wlist.forEach(w=>{
+    const feat = computeFeatures(w.dies, ext);
+    const dec  = decidePattern(feat);
+    waferData[w.waferId] = { dies:w.dies, feat, dec, ext, waferId_full:w.waferId_full };
+  });
+
+  lots[lotId] = { waferData, meta:{ lotId, testDate: wlist[0]?.testDate, tester: wlist[0]?.tester } };
+}
+
+// ============================================================
+// SPATIAL FEATURES
+// ============================================================
+function computeFeatures(dies, ext){
+  const {minX,maxX,minY,maxY}=ext;
+  const total=dies.length, fail=dies.filter(d=>!d.pass);
+  const failTotal=fail.length;
+  if(!total) return null;
+  const cx=(minX+maxX)/2,cy=(minY+maxY)/2,R=Math.max((maxX-minX)/2,(maxY-minY)/2)||1;
+  const N=16, colS=new Array(N).fill(0), rowS=new Array(N).fill(0), angH=new Array(8).fill(0);
+  let cM=0,eM=0;
+  fail.forEach(d=>{
+    const nx=(d.x-cx)/R,ny=(d.y-cy)/R,rad=Math.sqrt(nx*nx+ny*ny);
+    const bx=Math.min(N-1,Math.max(0,Math.floor(((d.x-minX)/(maxX-minX+1))*N)));
+    const by=Math.min(N-1,Math.max(0,Math.floor(((d.y-minY)/(maxY-minY+1))*N)));
+    colS[bx]++;rowS[by]++;
+    if(rad<0.45) cM++; if(rad>0.75) eM++;
+    const ai=((Math.floor(((Math.atan2(ny,nx)+Math.PI)/(2*Math.PI))*8))%8+8)%8;
+    angH[ai]++;
+  });
+  const bs=failTotal||1;
+  const ir0vals=dies.map(d=>d.IR0).filter(v=>v!==null&&!isNaN(v));
+  return{
+    total,failTotal,densityRatio:failTotal/total,
+    centerScore:cM/bs,edgeScore:eM/bs,
+    angMax:Math.max(...angH)/bs,colMax:Math.max(...colS)/bs,rowMax:Math.max(...rowS)/bs,
+    ir0_mean:ir0vals.length?ir0vals.reduce((a,b)=>a+b,0)/ir0vals.length:0
+  };
+}
+
+function decidePattern(f){
+  if(!f) return{pattern:'No Data',cause:'無有效資料'};
+  const{densityRatio:dr,centerScore:cs,edgeScore:es,angMax:am,colMax:cm,rowMax:rm}=f;
+  if(dr<0.04) return{pattern:'None',cause:'近乎正常分布，無明顯系統性缺陷'};
+  if(dr>0.5)  return{pattern:'Near-full',cause:'大面積失效，疑似整片製程失敗或破片'};
+  if(cm>0.35||rm>0.35) return{pattern:'Scratch',cause:'線狀分布，疑似機械刮傷(wafer handling/robot)、微影掃描方向不均'};
+  if(es>0.55&&am<0.3)  return{pattern:'Edge-Ring',cause:'環狀邊緣失效，常見於 EBR、邊緣夾持應力、CVD/PVD 邊緣均勻性不佳'};
+  if(es>0.45&&am>=0.3) return{pattern:'Edge-Loc',cause:'邊緣局部失效，疑似 chuck/cassette slot 接觸不良'};
+  if(cs>0.5&&am<0.3)   return{pattern:'Center',cause:'中心集中，疑似塗佈中心起始異常或氣流場中心偏差'};
+  if(cs>0.3&&es>0.3)   return{pattern:'Donut',cause:'中心+外環同時偏高，疑似同心圓溫度/氣流不均'};
+  if(am>0.4) return{pattern:'Local',cause:'局部群集，高度懷疑顆粒污染、探針卡接觸不良或特定 chamber 異常'};
+  return{pattern:'Random',cause:'隨機散布，屬一般良率背景值，非系統性問題'};
+}
+
+// ============================================================
+// PROGRESS UI
+// ============================================================
+function showProgress(){
+  document.getElementById('import-progress').style.display='block';
+  document.getElementById('prog-list').innerHTML='';
+}
+function addProgItem(name, status, cls){
+  const d=document.createElement('div'); d.className='prog-item'; d.id='pi-'+name.replace(/[^a-z0-9]/gi,'_');
+  d.innerHTML=`<span class="pi-name">${name}</span><span class="pi-status ${cls}">${status}</span>`;
+  document.getElementById('prog-list').appendChild(d);
+}
+function updateProgItem(name, status, cls){
+  const d=document.getElementById('pi-'+name.replace(/[^a-z0-9]/gi,'_'));
+  if(d){ d.querySelector('.pi-status').textContent=status; d.querySelector('.pi-status').className='pi-status '+cls; }
+  else addProgItem(name,status,cls);
+}
+
+// ============================================================
+// LOT TABS
+// ============================================================
+function renderLotTabs(){
+  const tabs=document.getElementById('lot-tabs');
+  tabs.innerHTML='';
+  Object.keys(lots).forEach(lid=>{
+    const t=document.createElement('span');
+    t.className='lot-tab'+(lid===activeLotId?' active':'');
+    const done=db.filter(r=>r.lotId===lid).length;
+    const total=Object.keys(lots[lid].waferData).length;
+    t.innerHTML=`${lid} <span style="opacity:.6">(${done}/${total})</span>`;
+    t.addEventListener('click',()=>switchLot(lid));
+    tabs.appendChild(t);
+  });
+}
+
+function switchLot(lid){
+  activeLotId=lid;
+  selectedWid=null;
+  renderLotTabs();
+  renderGrid();
+  document.getElementById('lot-badge').textContent=lid;
+  document.getElementById('main-content').innerHTML='<div class="hint" style="margin-top:60px;text-align:center;">← 點選左側 Wafer 縮圖進行標注</div>';
+  document.getElementById('no-sel').style.display='';
+  document.getElementById('anno-panel').style.display='none';
+  updateSessionBadge();
+}
+
+// ============================================================
+// WAFER GRID
+// ============================================================
+function renderGrid(){
+  const grid=document.getElementById('wafer-grid');
+  grid.innerHTML='';
+  const wd=lots[activeLotId]?.waferData||{};
+  const annSet=new Set(db.filter(r=>r.lotId===activeLotId).map(r=>r.waferId));
+  Object.keys(wd).sort((a,b)=>+a-+b||a.localeCompare(b)).forEach(wid=>{
+    const w=wd[wid];
+    const card=document.createElement('div');
+    card.className='wcard'+(annSet.has(wid)?' annotated':'')+(wid===selectedWid?' selected':'');
+    card.dataset.wid=wid;
+    const cv=document.createElement('canvas'); cv.width=52; cv.height=52;
+    drawMini(cv,w.dies,w.ext);
+    card.appendChild(cv);
+    const lbl=document.createElement('div'); lbl.className='wlabel';
+    const rec=db.find(r=>r.lotId===activeLotId&&r.waferId===wid);
+    const pat=rec?rec.gt_pattern:w.dec.pattern;
+    lbl.innerHTML=`#${wid.replace(/^0+/,'')} <span class="tag ${pat.replace(/\s/g,'')}">${pat}</span>`;
+    card.appendChild(lbl);
+    card.addEventListener('click',()=>selectWafer(wid));
+    grid.appendChild(card);
+  });
+}
+
+function drawMini(canvas,dies,ext){
+  const{minX,maxX,minY,maxY}=ext;
+  const gw=maxX-minX+1,gh=maxY-minY+1;
+  const cell=Math.min(canvas.width/gw,canvas.height/gh);
+  canvas.height=Math.round(cell*gh);
+  const ctx=canvas.getContext('2d');
+  const map={}; dies.forEach(d=>map[d.x+','+d.y]=d);
+  for(let y=minY;y<=maxY;y++)
+    for(let x=minX;x<=maxX;x++){
+      const d=map[x+','+y]; if(!d) continue;
+      ctx.fillStyle=d.pass?'#5fbf5f':'#e85e5e';
+      ctx.fillRect((x-minX)*cell,(y-minY)*cell,cell-0.3,cell-0.3);
+    }
+}
+
+// ============================================================
+// SELECT WAFER
+// ============================================================
+function selectWafer(wid){
+  selectedWid=wid;
+  document.querySelectorAll('.wcard').forEach(c=>c.classList.toggle('selected',c.dataset.wid===wid));
+  const w=lots[activeLotId].waferData[wid];
+  const rec=db.find(r=>r.lotId===activeLotId&&r.waferId===wid);
+
+  document.getElementById('no-sel').style.display='none';
+  document.getElementById('anno-panel').style.display='';
+  document.getElementById('anno-title').textContent=`${activeLotId} — Wafer #${wid.replace(/^0+/,'')}`;
+  document.getElementById('algo-suggest').textContent=w.dec.pattern;
+  document.getElementById('algo-suggest').className='tag '+(w.dec.pattern.replace(/\s/g,'')||'Unknown');
+  document.getElementById('algo-cause').textContent=w.dec.cause;
+  document.getElementById('proc-input').value=rec?rec.process_station:'';
+  document.getElementById('note-input').value=rec?rec.note:'';
+  renderPatternBtns(rec?rec.gt_pattern:'');
+
+  // big map
+  const main=document.getElementById('main-content');
+  const fr=(w.feat.densityRatio*100).toFixed(1);
+  main.innerHTML=`
+    <div class="section-title">${activeLotId} — Wafer #${wid.replace(/^0+/,'')}
+      <span class="tag ${w.dec.pattern.replace(/\s/g,'')}" style="margin-left:6px;">${w.dec.pattern}</span>
+    </div>
+    <div class="hint" style="margin-bottom:10px;">
+      ${w.dec.cause}<br>
+      Fail: <b>${fr}%</b> (${w.feat.failTotal}/${w.feat.total})　
+      center: ${w.feat.centerScore.toFixed(2)}　
+      edge: ${w.feat.edgeScore.toFixed(2)}　
+      angMax: ${w.feat.angMax.toFixed(2)}　
+      colMax: ${w.feat.colMax.toFixed(2)}　
+      IR0 mean: ${w.feat.ir0_mean.toFixed(1)} µA
+    </div>
+    <div style="text-align:center;"><canvas id="big-cv" width="380" height="380"></canvas></div>`;
+  bigCanvas=document.getElementById('big-cv');
+  drawBig(bigCanvas,w.dies,w.ext);
+}
+
+function drawBig(canvas,dies,ext){
+  const{minX,maxX,minY,maxY}=ext;
+  const gw=maxX-minX+1,gh=maxY-minY+1;
+  const cell=Math.min(canvas.width/gw,canvas.height/gh);
+  canvas.height=Math.round(cell*gh);
+  const ctx=canvas.getContext('2d');
+  ctx.fillStyle='#11151c';ctx.fillRect(0,0,canvas.width,canvas.height);
+  const map={}; dies.forEach(d=>map[d.x+','+d.y]=d);
+  for(let y=minY;y<=maxY;y++)
+    for(let x=minX;x<=maxX;x++){
+      const d=map[x+','+y]; if(!d) continue;
+      ctx.fillStyle=d.pass?'#5fbf5f':'#e85e5e';
+      ctx.fillRect((x-minX)*cell,(y-minY)*cell,cell-0.5,cell-0.5);
+    }
+}
+
+// ============================================================
+// PATTERN BUTTONS
+// ============================================================
+function renderPatternBtns(active){
+  const wrap=document.getElementById('pattern-btns');
+  wrap.innerHTML='';
+  PATTERNS.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='pbtn'+(p===active?' active':'');
+    b.textContent=p;
+    b.onclick=()=>{ wrap.querySelectorAll('.pbtn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); };
+    wrap.appendChild(b);
+  });
+}
+function getActivePattern(){ const b=document.querySelector('#pattern-btns .pbtn.active'); return b?b.textContent:''; }
+
+// ============================================================
+// SAVE
+// ============================================================
+document.getElementById('save-btn').addEventListener('click', ()=>{
+  if(!selectedWid||!activeLotId){ alert('請先選取 Wafer'); return; }
+  const gt=getActivePattern(); if(!gt){ alert('請選擇 Pattern'); return; }
+  const w=lots[activeLotId].waferData[selectedWid];
+  const png=bigCanvas?bigCanvas.toDataURL('image/png'):'';
+  const rec={
+    lotId:activeLotId, waferId:selectedWid,
+    timestamp:new Date().toISOString(),
+    gt_pattern:gt, algo_pattern:w.dec.pattern,
+    process_station:document.getElementById('proc-input').value.trim(),
+    note:document.getElementById('note-input').value.trim(),
+    fail_rate:+(w.feat.densityRatio*100).toFixed(2),
+    fail_count:w.feat.failTotal, total_die:w.feat.total,
+    densityRatio:+w.feat.densityRatio.toFixed(4),
+    centerScore:+w.feat.centerScore.toFixed(4),
+    edgeScore:+w.feat.edgeScore.toFixed(4),
+    angMax:+w.feat.angMax.toFixed(4),
+    colMax:+w.feat.colMax.toFixed(4),
+    rowMax:+w.feat.rowMax.toFixed(4),
+    ir0_mean:+w.feat.ir0_mean.toFixed(3),
+    wafer_map_png:png
+  };
+  const idx=db.findIndex(r=>r.lotId===activeLotId&&r.waferId===selectedWid);
+  if(idx>=0) db[idx]=rec; else db.push(rec);
+  saveDB(); renderGrid(); updateStats(); updateSessionBadge(); renderRecords();
+  document.getElementById('anno-title').textContent += ' ✓';
+});
+
+document.getElementById('next-btn').addEventListener('click', ()=>{
+  const wids=Object.keys(lots[activeLotId]?.waferData||{}).sort((a,b)=>+a-+b||a.localeCompare(b));
+  const cur=wids.indexOf(selectedWid);
+  if(cur<wids.length-1) selectWafer(wids[cur+1]);
+});
+
+// ============================================================
+// STATS
+// ============================================================
+function updateStats(){
+  const lots_n=new Set(db.map(r=>r.lotId)).size;
+  document.getElementById('s-total').textContent=db.length;
+  document.getElementById('s-lots').textContent=lots_n;
+  document.getElementById('total-badge').textContent=`累計 ${db.length} 筆標注`;
+  const counts={};PATTERNS.forEach(p=>counts[p]=0);
+  db.forEach(r=>{if(counts[r.gt_pattern]!==undefined)counts[r.gt_pattern]++;});
+  const tot=db.length||1;
+  document.getElementById('hist').innerHTML=PATTERNS.map(p=>`
+    <div class="hist-row">
+      <div class="hist-name">${p}</div>
+      <div class="hist-bar-wrap"><div class="hist-bar" style="width:${Math.round(counts[p]/tot*100)}%"></div></div>
+      <div class="hist-lbl">${counts[p]}</div>
+    </div>`).join('');
+}
+
+function updateSessionBadge(){
+  const wd=lots[activeLotId]?.waferData||{};
+  const total=Object.keys(wd).length;
+  const done=db.filter(r=>r.lotId===activeLotId).length;
+  document.getElementById('session-badge').textContent=`本批 ${done}/${total}`;
+}
+
+function renderRecords(){
+  document.getElementById('record-list').innerHTML=
+    [...db].reverse().slice(0,20).map(r=>`
+      <div class="rec-row">
+        <span class="rn">${r.lotId}</span>
+        <span class="rn">#${r.waferId.replace(/^0+/,'')}</span>
+        <span class="rv"><span class="tag ${r.gt_pattern.replace(/\s/g,'')}">${r.gt_pattern}</span></span>
+        <span style="color:var(--muted);font-size:10px;">${r.fail_rate}%</span>
+      </div>`).join('');
+}
+
+// ============================================================
+// EXPORT
+// ============================================================
+function toCSV(records){
+  const cols=['lotId','waferId','timestamp','gt_pattern','algo_pattern','process_station','note','fail_rate','fail_count','total_die','densityRatio','centerScore','edgeScore','angMax','colMax','rowMax','ir0_mean'];
+  return [cols.join(','),...records.map(r=>cols.map(c=>JSON.stringify(r[c]??'')).join(','))].join('\n');
+}
+function toFeatCSV(records){
+  const cols=['lotId','waferId','gt_pattern','densityRatio','centerScore','edgeScore','angMax','colMax','rowMax','ir0_mean','fail_rate'];
+  return [cols.join(','),...records.map(r=>cols.map(c=>r[c]??'').join(','))].join('\n');
+}
+function dl(text,name,type='text/csv'){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();
+}
+document.getElementById('exp-csv').addEventListener('click',()=>{ if(!db.length){alert('尚無標注');return;} dl(toCSV(db),'labeled_dataset.csv'); });
+document.getElementById('exp-json').addEventListener('click',()=>{ if(!db.length){alert('尚無標注');return;} dl(JSON.stringify(db,null,2),'labeled_dataset.json','application/json'); });
+document.getElementById('exp-feat').addEventListener('click',()=>{ if(!db.length){alert('尚無標注');return;} dl(toFeatCSV(db),'features_only.csv'); });
+document.getElementById('clear-btn').addEventListener('click',()=>{
+  if(!confirm('清除所有已儲存標注？不可復原。')) return;
+  db=[];saveDB();updateStats();renderRecords();
+});
+
+// init
+updateStats(); renderRecords();
+</script>
+</body>
+</html>
