@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>晶圓缺陷辨識系統 — 運作原理說明</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans+TC:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0f14;
+    --bg-panel:#10161d;
+    --bg-panel-2:#141c25;
+    --line:#1f2937;
+    --line-soft:#182029;
+    --text:#e8edf3;
+    --muted:#8291a6;
+    --muted-dim:#4c5a6e;
+    --human:#ffb454;      /* amber = 人工決策 */
+    --human-dim:#8a6127;
+    --machine:#5ee6d0;    /* cyan  = 模型/機器判斷 */
+    --machine-dim:#2e7d70;
+    --good:#52d68a;
+    --bad:#ff6b6b;
+    --display: 'Space Grotesk', 'IBM Plex Sans TC', sans-serif;
+    --body: 'IBM Plex Sans TC', -apple-system, 'Segoe UI', sans-serif;
+    --mono: 'JetBrains Mono', SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(ellipse 1000px 600px at 10% -10%, #121a24 0%, transparent 55%),
+      radial-gradient(ellipse 800px 600px at 100% 0%, #171220 0%, transparent 50%),
+      var(--bg);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.7;
+  }
+
+  /* ---------- layout ---------- */
+  .shell{ display:grid; grid-template-columns:260px 1fr; max-width:1200px; margin:0 auto; }
+  @media (max-width:900px){ .shell{ grid-template-columns:1fr; } .sidenav{ display:none; } }
+
+  .sidenav{
+    position:sticky; top:0; align-self:start; height:100vh;
+    padding:40px 20px 40px 32px;
+    overflow-y:auto;
+    border-right:1px solid var(--line-soft);
+  }
+  .sidenav .brand{
+    font-family:var(--mono); font-size:10.5px; letter-spacing:.14em; color:var(--muted-dim);
+    text-transform:uppercase; margin-bottom:28px;
+  }
+  .sidenav a{
+    display:flex; gap:10px; align-items:baseline;
+    color:var(--muted); text-decoration:none; font-size:13px;
+    padding:7px 0; border-left:2px solid transparent; padding-left:12px; margin-left:-13px;
+    transition:color .15s ease, border-color .15s ease;
+  }
+  .sidenav a:hover{ color:var(--text); }
+  .sidenav a .num{ font-family:var(--mono); font-size:10.5px; color:var(--muted-dim); }
+  .sidenav .legend{ margin-top:36px; padding-top:20px; border-top:1px solid var(--line-soft); }
+  .legend-row{ display:flex; align-items:center; gap:8px; font-size:11.5px; color:var(--muted); margin-bottom:8px; }
+  .legend-dot{ width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+
+  main{ padding:56px 48px 120px; min-width:0; }
+  @media (max-width:900px){ main{ padding:32px 20px 100px; } }
+
+  /* ---------- hero ---------- */
+  .hero{ margin-bottom:80px; }
+  .hero .kicker{
+    font-family:var(--mono); font-size:11px; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--machine); margin-bottom:18px; display:flex; align-items:center; gap:10px;
+  }
+  .hero .kicker::before{ content:''; width:22px; height:1px; background:var(--machine); }
+  .hero h1{
+    font-family:var(--display); font-weight:700; font-size:clamp(28px,4vw,44px);
+    line-height:1.25; margin:0 0 20px; letter-spacing:-.01em;
+  }
+  .hero h1 .accent{ color:var(--machine); }
+  .hero p{ font-size:15.5px; color:var(--muted); max-width:640px; }
+  .hero-diagram{
+    margin-top:40px; display:flex; align-items:center; gap:0; flex-wrap:wrap;
+  }
+  .hd-node{
+    font-family:var(--mono); font-size:11.5px; padding:10px 16px; border-radius:8px;
+    border:1px solid var(--line); background:var(--bg-panel); color:var(--text); white-space:nowrap;
+  }
+  .hd-node.human{ border-color:var(--human-dim); color:var(--human); }
+  .hd-node.machine{ border-color:var(--machine-dim); color:var(--machine); }
+  .hd-arrow{ color:var(--muted-dim); padding:0 10px; font-size:14px; }
+
+  /* ---------- sections ---------- */
+  section{ margin-bottom:96px; scroll-margin-top:32px; }
+  .sec-head{ display:flex; align-items:flex-start; gap:18px; margin-bottom:24px; }
+  .sec-num{
+    font-family:var(--mono); font-size:12px; color:var(--muted-dim);
+    padding-top:6px; min-width:26px;
+  }
+  .sec-head h2{
+    font-family:var(--display); font-weight:600; font-size:22px; margin:0;
+    letter-spacing:-.005em;
+  }
+  .sec-sub{ color:var(--muted); font-size:13.5px; margin-top:6px; max-width:600px; }
+
+  .prose{ font-size:14.5px; color:#c3cdda; max-width:680px; }
+  .prose p{ margin:0 0 16px; }
+  .prose strong{ color:var(--text); font-weight:600; }
+  .prose code{
+    font-family:var(--mono); font-size:12.5px; background:var(--bg-panel-2);
+    border:1px solid var(--line-soft); padding:2px 6px; border-radius:4px; color:var(--machine);
+  }
+
+  .callout{
+    border-left:2px solid var(--machine-dim); background:var(--bg-panel);
+    padding:14px 18px; border-radius:0 8px 8px 0; font-size:13.5px; color:var(--muted);
+    margin:20px 0; max-width:660px;
+  }
+  .callout.human{ border-left-color:var(--human-dim); }
+  .callout b{ color:var(--text); }
+
+  /* ---------- flow diagram ---------- */
+  .flow{ display:flex; align-items:stretch; gap:0; flex-wrap:wrap; margin:28px 0; }
+  .flow-step{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:10px;
+    padding:16px 18px; min-width:150px; max-width:190px;
+  }
+  .flow-step .ft{ font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted-dim); margin-bottom:6px; }
+  .flow-step .fb{ font-size:13px; color:var(--text); font-weight:500; line-height:1.5; }
+  .flow-step .fd{ font-size:11.5px; color:var(--muted); margin-top:6px; line-height:1.5; }
+  .flow-step.machine{ border-color:var(--machine-dim); }
+  .flow-step.machine .ft{ color:var(--machine); }
+  .flow-step.human{ border-color:var(--human-dim); }
+  .flow-step.human .ft{ color:var(--human); }
+  .flow-arrow{ display:flex; align-items:center; justify-content:center; padding:0 8px; color:var(--muted-dim); font-family:var(--mono); font-size:16px; min-width:20px; }
+  @media (max-width:700px){ .flow{ flex-direction:column; } .flow-arrow{ transform:rotate(90deg); padding:6px 0; } }
+
+  /* ---------- reticle icon ---------- */
+  .ret-icon{ flex-shrink:0; }
+  .ret-icon rect{ shape-rendering:crispEdges; }
+
+  /* ---------- data table ---------- */
+  table.ref{ width:100%; max-width:680px; border-collapse:collapse; font-size:13px; margin:20px 0; }
+  table.ref th{
+    text-align:left; font-family:var(--mono); font-size:10px; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--muted-dim); padding:8px 12px; border-bottom:1px solid var(--line);
+  }
+  table.ref td{ padding:10px 12px; border-bottom:1px solid var(--line-soft); color:#c3cdda; vertical-align:top; }
+  table.ref td:first-child{ font-family:var(--mono); color:var(--text); white-space:nowrap; }
+
+  /* ---------- code block ---------- */
+  pre{
+    background:var(--bg-panel); border:1px solid var(--line); border-radius:10px;
+    padding:16px 18px; overflow-x:auto; font-family:var(--mono); font-size:12px;
+    color:#c3cdda; max-width:680px; line-height:1.7;
+  }
+  pre .c1{ color:var(--muted-dim); }
+  pre .c2{ color:var(--machine); }
+  pre .c3{ color:var(--human); }
+
+  /* ---------- comparison cards ---------- */
+  .cardgrid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; max-width:680px; margin:24px 0; }
+  @media (max-width:600px){ .cardgrid{ grid-template-columns:1fr; } }
+  .card{ background:var(--bg-panel); border:1px solid var(--line); border-radius:10px; padding:18px; }
+  .card .ct{ font-family:var(--mono); font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; margin-bottom:10px; }
+  .card.machine .ct{ color:var(--machine); }
+  .card.human .ct{ color:var(--human); }
+  .card ul{ margin:0; padding-left:18px; font-size:12.5px; color:var(--muted); line-height:1.9; }
+  .card ul li strong{ color:var(--text); }
+
+  /* ---------- lifecycle loop ---------- */
+  .loop-wrap{ margin:32px 0; }
+  .loop{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+  .loop-node{
+    font-family:var(--mono); font-size:11.5px; padding:10px 14px; border-radius:20px;
+    border:1px solid var(--line); background:var(--bg-panel); white-space:nowrap;
+  }
+  .loop-node.m{ border-color:var(--machine-dim); color:var(--machine); }
+  .loop-node.h{ border-color:var(--human-dim); color:var(--human); }
+  .loop-arrow{ color:var(--muted-dim); }
+
+  footer{
+    max-width:680px; padding-top:32px; margin-top:40px; border-top:1px solid var(--line-soft);
+    font-family:var(--mono); font-size:11px; color:var(--muted-dim); line-height:1.8;
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <nav class="sidenav">
+    <div class="brand">WAFER AI · PIPELINE DOC</div>
+    <a href="#s1"><span class="num">01</span> 模型本體</a>
+    <a href="#s2"><span class="num">02</span> 兩種輸入路徑</a>
+    <a href="#s3"><span class="num">03</span> 良率規則判定</a>
+    <a href="#s4"><span class="num">04</span> 跨 Wafer 熱點分析</a>
+    <a href="#s5"><span class="num">05</span> 人機協作標籤修正</a>
+    <a href="#s6"><span class="num">06</span> Retrain 合併邏輯</a>
+    <a href="#s7"><span class="num">07</span> 完整生命週期</a>
+    <div class="legend">
+      <div class="legend-row"><span class="legend-dot" style="background:var(--machine)"></span> 機器 / 模型判斷</div>
+      <div class="legend-row"><span class="legend-dot" style="background:var(--human)"></span> 人工 / 規則決策</div>
+    </div>
+  </nav>
+
+  <main>
+
+    <div class="hero">
+      <div class="kicker">Internal Tool · 運作原理說明</div>
+      <h1>這套系統怎麼把一份 <span class="accent">test log</span><br>變成一句「這是哪種缺陷」</h1>
+      <p>這份文件說明晶圓缺陷辨識工具背後的完整運作方式——從一份 ATE test log CSV，到模型判斷、規則過濾、跨 wafer 熱點比對、人工修正，一直到未來重新訓練模型，資料實際上是怎麼流動的。</p>
+
+      <div class="hero-diagram">
+        <div class="hd-node">Test Log CSV</div>
+        <div class="hd-arrow">→</div>
+        <div class="hd-node human">良率規則判定</div>
+        <div class="hd-arrow">→</div>
+        <div class="hd-node machine">ResNet34 模型</div>
+        <div class="hd-arrow">→</div>
+        <div class="hd-node">Pattern 判定</div>
+        <div class="hd-arrow">→</div>
+        <div class="hd-node human">人工修正 / 累積</div>
+      </div>
+    </div>
+
+    <!-- ============ 01 模型本體 ============ -->
+    <section id="s1">
+      <div class="sec-head">
+        <span class="sec-num">01</span>
+        <div>
+          <h2>模型本體：一顆只認得 8 種缺陷的 ResNet34</h2>
+          <div class="sec-sub">辨識引擎是誰、吃什麼格式、吐出什麼結果</div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>這套系統的辨識核心，是一顆基於 <strong>ResNet34</strong> 架構的卷積神經網路，由 Hugging Face 上 <code>radai-agent/radai-wm811k-defect-detection</code> 這個公開模型提供，用 <strong>WM-811K</strong>（業界最大的公開晶圓圖資料集，17.2 萬筆）訓練而成。</p>
+        <p>模型的輸入固定是一張 <strong>64×64 的灰階陣列</strong>，數值只有三種：<code>0</code> 代表背景（wafer 邊界外、沒有 die 的地方）、<code>1</code> 代表良品 die、<code>2</code> 代表不良 die。不管你丟進去的原始資料是什麼尺寸的 wafer，系統都會先縮放、正規化成這個固定格式。</p>
+        <p>輸出則是一個 <strong>8 類的機率分佈（softmax）</strong>，加總必為 100%：</p>
+      </div>
+
+      <table class="ref">
+        <thead><tr><th>Pattern</th><th>典型特徵</th></tr></thead>
+        <tbody>
+          <tr><td>Center</td><td>缺陷集中在中心</td></tr>
+          <tr><td>Donut</td><td>環狀分佈，中心與邊緣正常</td></tr>
+          <tr><td>Edge-Loc</td><td>邊緣局部異常</td></tr>
+          <tr><td>Edge-Ring</td><td>沿邊緣整圈異常</td></tr>
+          <tr><td>Loc</td><td>非邊緣的局部群聚</td></tr>
+          <tr><td>Random</td><td>隨機散佈</td></tr>
+          <tr><td>Scratch</td><td>線狀刮痕</td></tr>
+          <tr><td>Near-full</td><td>近乎整片異常</td></tr>
+        </tbody>
+      </table>
+
+      <div class="callout">
+        <b>為什麼是 8 類，沒有「正常 / None」？</b><br>
+        原始 WM-811K 其實有 9 類，但 <strong>None（無特定圖案）佔了整體 85%</strong>。如果照原比例一起訓練，模型會傾向無腦猜 None 就能拿到 85% 準確率，反而學不好真正需要辨識的缺陷 pattern——這是分類任務中經典的 <em>class imbalance（類別失衡）</em>問題。這顆模型選擇拿掉 None，讓 8 類缺陷彼此數量接近、訓練更聚焦。也因此，<strong>「這片是不是正常的」這件事，不該問模型，而是要用良率數字直接判斷</strong>——這正是下面第 03 節「良率規則判定」存在的原因。
+      </div>
+    </section>
+
+    <!-- ============ 02 兩種輸入路徑 ============ -->
+    <section id="s2">
+      <div class="sec-head">
+        <span class="sec-num">02</span>
+        <div>
+          <h2>兩種輸入路徑：圖片 vs. Test Log</h2>
+          <div class="sec-sub">同一顆模型，兩種完全不同的資料前處理方式</div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>系統支援兩種完全獨立的輸入來源，殊途同歸地變成同一種 64×64 陣列格式，再送進模型。</p>
+      </div>
+
+      <div class="cardgrid">
+        <div class="card machine">
+          <div class="ct">路徑 A · 單張圖片</div>
+          <ul>
+            <li>使用者上傳 <strong>PNG / JPG</strong></li>
+            <li>轉灰階，縮放成 64×64</li>
+            <li>依最大值正規化到 0~1</li>
+            <li>直接送進模型</li>
+          </ul>
+        </div>
+        <div class="card human">
+          <div class="ct">路徑 B · Test Log CSV</div>
+          <ul>
+            <li>解析 <code>XAdr</code> / <code>YAdr</code> / <code>Bin#</code></li>
+            <li>還原成真實的 die 座標網格</li>
+            <li><code>Bin#==1</code> → 良品，其他 → 不良</li>
+            <li>縮放成 64×64 才送進模型</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>路徑 B 是這套系統真正的核心價值：它<strong>不需要人工先把 wafer 畫成圖</strong>，而是直接從機台吐出的原始 test log 讀取 <code>Serial#, Site#, Bin#, SBin#, XAdr, YAdr</code> 這幾欄，逐顆 die 還原出一個 <code>bin_map</code> 陣列——這比任何截圖或拍照都精確，因為它是機台實際量測的座標數字，不會因為畫圖、壓縮、縮放而失真。</p>
+        <p>解析過程中還會順便做一件事：從 CSV 表頭抓出 <code>IR0(8)</code>、<code>VF1(17)</code> 這類「測項名稱(Bin 編號)」的對照表，讓系統知道每一顆 fail die 具體是<strong>哪一個測項</strong>造成的，而不只是「有沒有 fail」。</p>
+      </div>
+
+      <pre>Serial#,Site#,Bin#,SBin#,XAdr,YAdr,...
+<span class="c1">0,7,</span><span class="c2">9</span><span class="c1">,9,20,6,...</span>   <span class="c1">→ Bin 9 = DIR0 測項 fail</span>
+<span class="c1">1,4,</span><span class="c2">1</span><span class="c1">,1,21,6,...</span>   <span class="c1">→ Bin 1 = 良品</span></pre>
+    </section>
+
+    <!-- ============ 03 良率規則判定 ============ -->
+    <section id="s3">
+      <div class="sec-head">
+        <span class="sec-num">03</span>
+        <div>
+          <h2>良率規則判定：不是每片都要跑模型</h2>
+          <div class="sec-sub">用一個簡單、確定的數字，取代模型不擅長判斷的事</div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>因為模型從未學過「正常」這個類別，如果把良率很高、幾乎沒有缺陷的 wafer 硬塞給它，它只能在 8 種「都是缺陷」的選項裡勉強選一個，通常會伴隨很低的信心分數。與其讓模型硬猜，不如用一條更可靠的規則先過濾：</p>
+      </div>
+
+      <div class="flow">
+        <div class="flow-step human">
+          <div class="ft">Step 1</div>
+          <div class="fb">計算良率</div>
+          <div class="fd">Pass 顆數 ÷ 總顆數</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step human">
+          <div class="ft">Step 2 · 規則</div>
+          <div class="fb">良率 ≥ 門檻？</div>
+          <div class="fd">門檻可調，預設 95%</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="ft">是</div>
+          <div class="fb">直接標記 None</div>
+          <div class="fd">不呼叫模型</div>
+        </div>
+      </div>
+      <div class="flow" style="margin-top:-8px;">
+        <div class="flow-step" style="visibility:hidden;"></div>
+        <div class="flow-arrow" style="visibility:hidden;">→</div>
+        <div class="flow-step" style="visibility:hidden;"></div>
+        <div class="flow-arrow">↓ 否</div>
+        <div class="flow-step machine">
+          <div class="ft">Step 3</div>
+          <div class="fb">送進 ResNet34</div>
+          <div class="fd">輸出 8 類機率排序</div>
+        </div>
+      </div>
+
+      <div class="callout human">
+        <b>這個門檻是人工工程判斷，不是模型算出來的。</b> 良率≥門檻的 wafer 完全不會被模型看到、也不會產生任何機率數字——避免介面上出現「假造的信心分數」誤導判讀。門檻值可以在介面上即時調整，每一批批次分析都會重新套用當下設定的數字。
+      </div>
+    </section>
+
+    <!-- ============ 04 跨 Wafer 熱點分析 ============ -->
+    <section id="s4">
+      <div class="sec-head">
+        <span class="sec-num">04</span>
+        <div>
+          <h2>跨 Wafer 同座標熱點：找出「固定機構」造成的問題</h2>
+          <div class="sec-sub">不是每片單獨看，而是把整批疊在一起比對</div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>單看一片 wafer 的缺陷分佈，很難分辨這是<strong>隨機顆粒污染</strong>還是<strong>固定機構造成的系統性問題</strong>（例如探針卡某根 pin 位置固定不良、chuck 上有固定污染點）。判斷的關鍵在於：如果同一個 (X, Y) 座標在整批很多片 wafer 上都重複失效，機率上不太可能是巧合。</p>
+      </div>
+
+      <div class="prose">
+        <p><strong>對齊方式</strong>：每片 wafer 的座標系統不一定完全從 (0,0) 開始，系統會先取整批所有檔案裡 <code>XAdr</code> / <code>YAdr</code> 的絕對最小值，建立一個共用的座標網格，再把每片的資料疊上去逐格累加：</p>
+      </div>
+
+      <pre><span class="c1">for 每一片 wafer:</span>
+    <span class="c1">for 每一顆 die at (x, y):</span>
+        <span class="c1">tested_count[y][x] += 1        </span><span class="c1">// 曾經被測到</span>
+        <span class="c1">if Bin# != 1:</span>
+            <span class="c2">fail_count[y][x] += 1       </span><span class="c1">// 在這片上 fail</span></pre>
+
+      <div class="prose">
+        <p>最後 <code>fail_count</code> 除以總片數，就是每個座標的「重複失效比例」。比例越高，顏色越紅，代表越可能是機構性問題，值得排查探針卡、chuck、cassette slot 或 chamber 內部的固定死角，而不是急著找隨機微粒。這個分析同樣適用於單一片 wafer（n=1），此時就單純是那一片自己的 fail die 分佈圖。</p>
+      </div>
+    </section>
+
+    <!-- ============ 05 人機協作標籤修正 ============ -->
+    <section id="s5">
+      <div class="sec-head">
+        <span class="sec-num">05</span>
+        <div>
+          <h2>人機協作：模型判斷錯了，怎麼記下來</h2>
+          <div class="sec-sub">Human-in-the-loop：修正不會消失，會被存下來變成未來的訓練材料</div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>模型的判斷不會永遠正確，尤其遇到訓練資料裡少見的圖案組合時，信心分數往往偏低。當工程師發現模型判斷錯誤，可以直接在介面上選擇正確的分類並存檔，系統會把<strong>原始資料（不是圖片）</strong>連同修正結果一起保留下來：</p>
+      </div>
+
+      <div class="cardgrid">
+        <div class="card machine">
+          <div class="ct">存的內容</div>
+          <ul>
+            <li><code>labels.csv</code> — wafer ID、模型原判斷、人工修正後標籤、主要 fail 測項、時間戳記</li>
+            <li><code>binmaps/*.npy</code> — 該片 wafer 完整的原始 Bin# 陣列</li>
+          </ul>
+        </div>
+        <div class="card human">
+          <div class="ct">為什麼不存圖片</div>
+          <ul>
+            <li>圖片是失真的視覺化，數字才是機台量測的原始事實</li>
+            <li>存數字陣列可以無損還原成任何格式，也是模型訓練需要的形式</li>
+            <li>檔案體積小非常多</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>下拉選單刻意把 <strong>「None（無特定圖案）」</strong>和<strong>「不確定/其他」</strong>分開：前者是工程師明確判斷「這片就是正常的」，後者是工程師自己也無法判斷，兩者存進紀錄的意義完全不同——把它們混在一起，將來會汙染訓練資料的品質。</p>
+      </div>
+    </section>
+
+    <!-- ============ 06 Retrain 合併邏輯 ============ -->
+    <section id="s6">
+      <div class="sec-head">
+        <span class="sec-num">06</span>
+        <div>
+          <h2>未來 Retrain：修正資料要怎麼跟原始資料合併</h2>
+          <div class="sec-sub">累積夠了之後，不能只靠這批小資料重新訓練</div>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p><code>corrected_labels/</code> 裡累積的資料通常只有幾十到幾百筆，而 WM-811K 原始訓練集有 17.2 萬筆。如果只拿這一小批去 retrain，模型很容易發生 <strong>catastrophic forgetting（災難性遺忘）</strong>——在努力學會這幾百筆的同時，忘記了原本從 17 萬筆學到的判斷能力。</p>
+      </div>
+
+      <div class="flow">
+        <div class="flow-step human">
+          <div class="ft">格式轉換</div>
+          <div class="fb">Bin 編號 → 0/1/2</div>
+          <div class="fd">修正資料存的是實際 Bin#，訓練前需簡化成模型認得的三值格式</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step machine">
+          <div class="ft">資料合併</div>
+          <div class="fb">WM-811K + 修正資料</div>
+          <div class="fd">兩邊都是同一種陣列格式，混成同一份訓練清單</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step human">
+          <div class="ft">取樣加權</div>
+          <div class="fb">修正資料給更高權重</div>
+          <div class="fd">量少，需要被多抽到幾次，才不會被 17 萬筆稀釋掉</div>
+        </div>
+      </div>
+
+      <div class="callout">
+        <b>驗證是必要步驟，不是選配。</b> Retrain 後一定要拿一份獨立的驗證集（可從 WM-811K 切出一部分）比較新舊模型的準確率，確認新模型沒有變差，才正式換掉線上使用的權重檔。模型檔案建議帶版本號（例如 <code>_v2_20260701</code>），方便隨時退回舊版本。
+      </div>
+    </section>
+
+    <!-- ============ 07 完整生命週期 ============ -->
+    <section id="s7">
+      <div class="sec-head">
+        <span class="sec-num">07</span>
+        <div>
+          <h2>完整生命週期：一個會越用越準的迴圈</h2>
+          <div class="sec-sub">把前面六節串起來，看整體是怎麼運轉的</div>
+        </div>
+      </div>
+
+      <div class="loop-wrap">
+        <div class="loop">
+          <div class="loop-node h">Test Log 產出</div>
+          <span class="loop-arrow">→</span>
+          <div class="loop-node h">良率規則過濾</div>
+          <span class="loop-arrow">→</span>
+          <div class="loop-node m">模型判斷 Pattern</div>
+          <span class="loop-arrow">→</span>
+          <div class="loop-node h">工程師覆核</div>
+          <span class="loop-arrow">→</span>
+          <div class="loop-node h">修正並累積</div>
+          <span class="loop-arrow">→</span>
+          <div class="loop-node m">Retrain 新模型</div>
+          <span class="loop-arrow">↺</span>
+        </div>
+      </div>
+
+      <div class="prose">
+        <p>這個迴圈裡，<strong style="color:var(--machine)">機器負責的是規模</strong>——一次處理整批 lot、跑一致的判斷標準、不會累；<strong style="color:var(--human)">人負責的是判斷力</strong>——決定良率門檻該設多少、修正模型看走眼的地方、決定累積夠不夠拿去 retrain。兩邊分工清楚，系統才會隨著時間越用越貼近實際產線的狀況，而不是停在剛下載模型那一刻的準確率。</p>
+      </div>
+    </section>
+
+    <footer>
+      WAFER DEFECT AI PIPELINE · INTERNAL DOCUMENTATION<br>
+      Model: radai-agent/radai-wm811k-defect-detection (MIT) · Dataset: WM-811K
+    </footer>
+
+  </main>
+</div>
+</body>
+</html>
