@@ -73,17 +73,43 @@ python app.py
 `Lot ID`、`Wafer ID` 等欄位，接著是以 `Serial#,Site#,Bin#,SBin#,XAdr,YAdr,...`
 為表頭的資料表。若上傳的檔案不符合這個格式，該檔案會被略過並在結果下方顯示錯誤原因，不會中斷整批處理。
 
+程式也會自動解析 CSV 表頭裡 `IR0(8)`、`VF1(17)` 這類「測項名稱(Bin#)」的
+對照表，算出每片 wafer **主要 fail 在哪個測項**，顯示在結果表格的「主要
+Fail 測項」欄位。
+
+### 修正模型判斷錯誤的標籤
+
+如果模型判斷的 pattern 不準確，可以在結果表格最右邊「修正標籤」欄位：
+
+1. 從下拉選單選擇正確的 pattern（或選「不確定/其他」）
+2. 按「存」
+
+儲存後會累積到 `corrected_labels/` 資料夾：
+
+```
+corrected_labels/
+├── labels.csv              # 每筆修正的紀錄（wafer ID、原判斷、修正後標籤、主要 fail 測項…）
+└── binmaps/
+    ├── RK30906-02.npy       # 該片 wafer 完整的 Bin# 原始數據（不是圖片，可精確還原）
+    └── ...
+```
+
+`labels.csv` 可以直接用 Excel 打開檢視。這些修正資料**目前只會被儲存、不會
+自動拿去重新訓練模型**——累積到一定數量後，若要用來 fine-tune 模型，需要另外
+寫訓練腳本（屬於進階功能，需要時可以再另外討論實作）。
+
 ## 檔案結構
 
 ```
 wafer-defect-demo/
-├── app.py                # Flask 後端 + 模型推論邏輯 + /predict、/predict_batch
-├── wafer_log_parser.py   # 解析 ATE dlogTDO CSV → wafer bin map
+├── app.py                # Flask 後端 + 模型推論邏輯 + /predict、/predict_batch、/save_correction
+├── wafer_log_parser.py   # 解析 ATE dlogTDO CSV → wafer bin map + bin-測項對照表
 ├── download_model.py     # 從 Hugging Face 下載權重的輔助腳本
 ├── requirements.txt
 ├── templates/
-│   └── index.html        # 前端頁面（單張圖片 + 整批 Lot Log 兩個分頁）
-└── best_radai_resnet.pt  # 執行 download_model.py 後產生
+│   └── index.html        # 前端頁面（單張圖片 + 整批 Lot Log 兩個分頁，含標籤修正功能）
+├── best_radai_resnet.pt  # 執行 download_model.py 後產生
+└── corrected_labels/     # 執行過標籤修正後自動產生，內含 labels.csv + binmaps/
 ```
 
 ## 常見問題

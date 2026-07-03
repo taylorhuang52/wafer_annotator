@@ -51,7 +51,30 @@ class WaferLogResult:
     n_die: int
     n_pass: int
     n_fail: int
-    bin_map: np.ndarray = field(repr=False)
+    bin_map: np.ndarray = field(repr=False)       # 0/1/2 — background/pass/fail, for the model
+    raw_bin_map: np.ndarray = field(repr=False)   # 0/actual Bin# — background/pass-or-fail-bin-number
+    bin_test_map: dict = field(default_factory=dict)  # {bin_number: test_name}, parsed from the CSV header
+    x_min: int = 0  # absolute XAdr offset of raw_bin_map[*, 0] — lets multiple wafers align by true coordinate
+    y_min: int = 0  # absolute YAdr offset of raw_bin_map[0, *]
+
+
+_BIN_TEST_PATTERN = re.compile(r"([A-Za-z0-9_]+)\((\d+)\)")
+
+
+def _parse_bin_test_map(lines: list[str]) -> dict:
+    """The datalog header includes a line like:
+        ,,,,,,Contact(1),Contact(2),...,IR0(8),DIR0(9),...,VF1(17),...
+    where the number in parentheses is the Bin# that test maps to.
+    Pick whichever line has the most NAME(number) matches."""
+    best_matches, best_count = [], 0
+    for line in lines:
+        matches = _BIN_TEST_PATTERN.findall(line)
+        if len(matches) > best_count:
+            best_count = len(matches)
+            best_matches = matches
+    bin_test_map = {int(num): name for name, num in best_matches}
+    bin_test_map.setdefault(1, "Pass")
+    return bin_test_map
 
 
 def _decode(raw: bytes) -> str:
@@ -87,6 +110,8 @@ def parse_dlog_csv(raw: bytes, filename: str = "") -> WaferLogResult:
             f"{filename}：找不到資料表頭（'{HEADER_ROW_PREFIX}' 那一列），"
             "檔案格式可能不是預期的 ATE datalog"
         )
+
+    bin_test_map = _parse_bin_test_map(lines[:header_idx])
 
     header_cols = [c.strip() for c in lines[header_idx].split(",")]
     try:
@@ -127,11 +152,13 @@ def parse_dlog_csv(raw: bytes, filename: str = "") -> WaferLogResult:
     width = int(x_max - x_min + 1)
 
     bin_map = np.zeros((height, width), dtype=np.float32)
+    raw_bin_map = np.zeros((height, width), dtype=np.int32)
     row_idx = ys_arr - y_min
     col_idx = xs_arr - x_min
     is_pass = bins_arr == 1
     bin_map[row_idx[is_pass], col_idx[is_pass]] = 1.0
     bin_map[row_idx[~is_pass], col_idx[~is_pass]] = 2.0
+    raw_bin_map[row_idx, col_idx] = bins_arr
 
     n_pass = int(is_pass.sum())
     n_die = len(bins_arr)
@@ -147,6 +174,10 @@ def parse_dlog_csv(raw: bytes, filename: str = "") -> WaferLogResult:
         n_pass=n_pass,
         n_fail=n_die - n_pass,
         bin_map=bin_map,
+        raw_bin_map=raw_bin_map,
+        bin_test_map=bin_test_map,
+        x_min=int(x_min),
+        y_min=int(y_min),
     )
 
 

@@ -313,6 +313,37 @@
   }
   .ghost-btn:hover { border-color: var(--accent-dim); background: #1c2434; }
 
+  .threshold-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 10px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    flex-wrap: wrap;
+  }
+  .threshold-row label { flex: 1; min-width: 200px; }
+  .threshold-row input[type="number"] {
+    width: 70px;
+    background: #0d141f;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 13px;
+    padding: 5px 8px;
+    text-align: right;
+  }
+  .threshold-row input[type="number"]:focus {
+    outline: none;
+    border-color: var(--accent-dim);
+  }
+  .threshold-row span { font-family: var(--mono); color: var(--text); }
+
   .batch-filelist {
     margin-top: 14px;
     max-height: 140px;
@@ -407,6 +438,11 @@
     color: var(--ok);
     background: rgba(61,220,151,.1);
   }
+  .pat-tag-rule {
+    color: var(--muted);
+    background: rgba(125,138,160,.12);
+  }
+  .pat-tag-rule span { opacity: .7; font-weight: 500; }
   .conf-cell { font-family: var(--mono); color: var(--muted); }
   .yield-cell { font-family: var(--mono); }
   .yield-low { color: #ff6b6b; }
@@ -425,6 +461,150 @@
     font-size: 11.5px;
     padding: 4px 2px;
   }
+
+  /* --- Hotspot feature --- */
+  .mini-dropzone {
+    border: 1.5px dashed var(--line);
+    border-radius: 10px;
+    padding: 18px 14px;
+    text-align: center;
+    cursor: pointer;
+    margin-top: 12px;
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .mini-dropzone.drag { border-color: var(--accent); background: rgba(255,138,61,.06); }
+  .mini-dropzone p { margin: 0; font-size: 12.5px; color: var(--muted); }
+
+  .hotspot-subnote {
+    font-size: 11.5px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-top: 4px;
+  }
+  .hotspot-divider {
+    height: 1px;
+    background: var(--line);
+    margin: 18px 0 14px;
+  }
+
+  #singleHotspotBtn, #lotHotspotBtn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 11px;
+    border-radius: 9px;
+    border: 1px solid var(--line);
+    background: var(--panel-2);
+    color: var(--text);
+    font-weight: 600;
+    font-size: 12.5px;
+    cursor: pointer;
+  }
+  #singleHotspotBtn:disabled, #lotHotspotBtn:disabled { opacity: .4; cursor: not-allowed; }
+  #singleHotspotBtn:not(:disabled):hover, #lotHotspotBtn:not(:disabled):hover { border-color: var(--accent-dim); background: #1c2434; }
+
+  .hotspot-panel { margin-top: 16px; }
+  .hotspot-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .hotspot-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 16px;
+  }
+  .hotspot-desc b { color: var(--text); }
+  .hotspot-canvas-wrap { display: flex; justify-content: center; margin-bottom: 16px; }
+  .hotspot-toplist {
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--text);
+    line-height: 2.1;
+  }
+  .hotspot-toplist .hs-label { color: var(--muted); margin-bottom: 6px; font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase; }
+  .hotspot-toplist .hs-item { color: var(--accent); }
+
+  /* --- Pattern cause reference --- */
+  .pattern-ref-panel {
+    margin-top: 24px;
+  }
+  .pattern-ref-panel summary {
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    letter-spacing: .04em;
+    color: var(--muted);
+    padding: 4px 0;
+    user-select: none;
+  }
+  .pattern-ref-panel summary:hover { color: var(--text); }
+  .pattern-ref-panel[open] summary { color: var(--accent); margin-bottom: 12px; }
+  .pattern-ref-note {
+    font-size: 11.5px;
+    color: var(--muted);
+    margin-bottom: 14px;
+    line-height: 1.6;
+  }
+  table.pattern-ref-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  table.pattern-ref-table th {
+    text-align: left;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--line);
+  }
+  table.pattern-ref-table td {
+    padding: 10px;
+    border-bottom: 1px solid #182130;
+    vertical-align: top;
+    line-height: 1.6;
+    color: var(--text);
+  }
+  table.pattern-ref-table td:nth-child(2) { color: var(--muted); white-space: nowrap; }
+  table.pattern-ref-table td:nth-child(3) { color: #a7b3c6; }
+
+  .correction-cell {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .corr-select {
+    background: var(--panel-2);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-family: var(--sans);
+    padding: 4px 6px;
+  }
+  .corr-save-btn {
+    background: var(--accent);
+    color: #1a0f04;
+    border: 1px solid var(--accent-dim);
+    border-radius: 6px;
+    font-size: 11.5px;
+    font-weight: 600;
+    padding: 4px 10px;
+    cursor: pointer;
+  }
+  .corr-save-btn:hover { filter: brightness(1.08); }
+  .corr-save-btn:disabled { opacity: .5; cursor: not-allowed; }
+  .corr-status {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--muted);
+    min-width: 60px;
+  }
 </style>
 </head>
 <body>
@@ -435,9 +615,9 @@
     <p class="sub">上傳晶圓圖（wafer map），模型會判斷屬於哪一種缺陷模式（Center / Donut / Edge-Loc / Edge-Ring / Loc / Random / Scratch / Near-full）。模型於本機執行，圖片不會上傳到外部伺服器。</p>
   </header>
 
-  <div class="tabs">
-    <button class="tab active" data-tab="single">單張圖片</button>
-    <button class="tab" data-tab="batch">整批 Lot Log</button>
+  <div class="tabs" id="tabsContainer">
+    <button class="tab active" data-tab="single">Single Wafer</button>
+    <button class="tab" data-tab="batch">Whole Lot</button>
   </div>
 
   <!-- ===================== SINGLE IMAGE MODE ===================== -->
@@ -471,6 +651,18 @@
         </div>
       </div>
     </div>
+
+    <div class="panel" style="margin-top:20px;">
+      <h2>Fail Die 座標分佈（需 test log CSV）</h2>
+      <div class="hotspot-subnote">上傳這片 wafer 的 test log（.csv），直接標出這片的 fail die 座標分佈，跟上方圖片辨識模式互相獨立。</div>
+      <div id="singleCsvDropzone" class="mini-dropzone">
+        <p>點擊或拖曳單一 CSV 檔案到這裡</p>
+        <input type="file" id="singleCsvInput" accept=".csv" style="display:none;">
+      </div>
+      <div class="filename" id="singleCsvFilename">尚未選擇檔案</div>
+      <button id="singleHotspotBtn" disabled>顯示 Fail Bin 分佈圖</button>
+      <div id="singleHotspotResult"></div>
+    </div>
   </div>
 
   <!-- ===================== BATCH LOT MODE ===================== -->
@@ -488,12 +680,78 @@
         <button class="ghost-btn" id="pickFilesBtn">選擇多個 CSV 檔案</button>
         <button class="ghost-btn" id="pickDirBtn">選擇 Lot 資料夾</button>
       </div>
+
+      <div class="threshold-row">
+        <label for="yieldThresholdInput">良率 ≥ 此門檻直接判定 None，不跑 AI 模型：</label>
+        <input type="number" id="yieldThresholdInput" min="0" max="100" step="0.5" value="{{ yield_none_threshold }}">
+        <span>%</span>
+      </div>
+
       <div class="batch-filelist" id="batchFileList"></div>
       <button id="batchRunBtn" disabled>執行批次辨識</button>
+
+      <div class="hotspot-divider"></div>
+      <div class="hotspot-subnote">下方會使用「上面已選取的同一批 CSV 檔案」偵測跨 wafer 同座標失效熱點，不需要重新上傳。</div>
+      <button id="lotHotspotBtn" disabled>偵測跨 Wafer 同座標失效熱點</button>
+      <div id="lotHotspotResult"></div>
     </div>
 
     <div id="batchResults"></div>
   </div>
+
+  <details class="panel pattern-ref-panel">
+    <summary>📖 8 種 Wafer Fail Pattern 常見製程成因參考（點擊展開）</summary>
+    <div class="pattern-ref-note">
+      以下為半導體業界常見經驗歸納，僅供初步排查方向參考，實際根因仍需搭配現場製程數據、機台履歷、與工程師判斷確認。
+    </div>
+    <table class="pattern-ref-table">
+      <thead>
+        <tr><th>Pattern</th><th>典型分佈特徵</th><th>常見可能成因</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="pat-tag">Center</span></td>
+          <td>缺陷集中在晶圓中心</td>
+          <td>CMP（化學機械研磨）中心厚薄不均、鍍膜/蝕刻製程中心區溫度或氣流分佈異常、旋塗（spin coating）中心堆積</td>
+        </tr>
+        <tr>
+          <td><span class="pat-tag">Donut</span></td>
+          <td>環狀分佈，中心與最外緣正常，中間環帶異常</td>
+          <td>電漿製程（etch/CVD）腔體內氣流或電場分佈不均、旋塗製程中段厚度不均</td>
+        </tr>
+        <tr>
+          <td><span class="pat-tag">Edge-Ring</span></td>
+          <td>沿整個邊緣呈環狀分佈</td>
+          <td>靜電夾盤（ESC）邊緣夾持力異常、腔體邊緣效應（edge effect）、Edge Bead Removal（EBR）製程異常、邊緣曝光/顯影不均</td>
+        </tr>
+        <tr>
+          <td><span class="pat-tag">Edge-Loc</span></td>
+          <td>邊緣局部區域異常，非整圈環狀</td>
+          <td>晶圓搬運碰撞或刮傷（robot arm、cassette）、上下料時邊緣污染、探針卡（probe card）邊緣對位偏移</td>
+        </tr>
+        <tr>
+          <td><span class="pat-tag">Loc</span></td>
+          <td>非邊緣的局部群聚異常</td>
+          <td>單一事件微粒污染（particle event）、局部光阻/顯影缺陷、局部蝕刻殘留</td>
+        </tr>
+        <tr>
+          <td><span class="pat-tag">Random</span></td>
+          <td>缺陷隨機散佈，無明顯規律</td>
+          <td>環境微粒背景污染、機台基礎缺陷密度、與特定製程步驟較無直接關聯</td>
+        </tr>
+        <tr>
+          <td><span class="pat-tag">Scratch</span></td>
+          <td>呈線狀，類似刮痕</td>
+          <td>機械刮傷（CMP 拋光墊、晶圓傳送手臂、匣盒摩擦），多為機構或搬運造成的實體損傷</td>
+        </tr>
+        <tr>
+          <td><span class="pat-tag pat-tag-rule">Near-full</span></td>
+          <td>近乎整片晶圓異常</td>
+          <td>製程步驟缺失或錯誤 recipe、整片污染、機台故障/停機、測試程式或對位嚴重錯誤</td>
+        </tr>
+      </tbody>
+    </table>
+  </details>
 
   <footer>model card: <a href="https://huggingface.co/radai-agent/radai-wm811k-defect-detection" target="_blank">huggingface.co/radai-agent/radai-wm811k-defect-detection</a></footer>
 </div>
@@ -629,15 +887,22 @@ runBtn.addEventListener('click', async () => {
 });
 
 // ===================== TABS =====================
-document.querySelectorAll('.tab').forEach(btn => {
-  btn.addEventListener('click', () => {
+const tabsContainer = document.getElementById('tabsContainer');
+if (tabsContainer) {
+  tabsContainer.addEventListener('click', e => {
+    const btn = e.target.closest('.tab');
+    if (!btn) return;
     document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     const target = btn.dataset.tab;
-    document.getElementById('tab-single').style.display = target === 'single' ? '' : 'none';
-    document.getElementById('tab-batch').style.display = target === 'batch' ? '' : 'none';
+    const single = document.getElementById('tab-single');
+    const batch = document.getElementById('tab-batch');
+    if (single) single.style.display = target === 'single' ? '' : 'none';
+    if (batch) batch.style.display = target === 'batch' ? '' : 'none';
   });
-});
+} else {
+  console.error('tabsContainer not found — tab switching disabled');
+}
 
 // ===================== BATCH MODE =====================
 const batchDropzone = document.getElementById('batchDropzone');
@@ -742,6 +1007,7 @@ batchRunBtn.addEventListener('click', async () => {
 
   const formData = new FormData();
   collectedFiles.forEach(f => formData.append('files', f, f.name));
+  formData.append('yield_threshold', document.getElementById('yieldThresholdInput').value);
 
   try {
     const res = await fetch('/predict_batch', { method: 'POST', body: formData });
@@ -758,9 +1024,19 @@ batchRunBtn.addEventListener('click', async () => {
   }
 });
 
+const WAFER_CLASSES = ["Center", "Donut", "Edge-Loc", "Edge-Ring", "Loc", "Random", "Scratch", "Near-full", "None"];
+const CLASS_DISPLAY_LABEL = { "None": "None（無特定圖案）" };
+const YIELD_NONE_THRESHOLD = {{ yield_none_threshold }};
+
 function yieldClass(pct) {
   if (pct >= 90) return 'yield-high';
   if (pct >= 70) return 'yield-mid';
+  return 'yield-low';
+}
+
+function confClass(pct) {
+  if (pct > 60) return 'yield-high';
+  if (pct >= 40) return 'yield-mid';
   return 'yield-low';
 }
 
@@ -792,6 +1068,8 @@ function renderBatchResults(data) {
   const chips = data.pattern_summary.map(p =>
     `<span class="pattern-chip"><span class="n">${p.count}</span>${p.label}</span>`
   ).join('');
+  const ruleCount = data.results.filter(r => r.rule_based).length;
+  const thresholdUsed = data.yield_threshold_used;
 
   let html = `
     <div class="panel">
@@ -799,7 +1077,11 @@ function renderBatchResults(data) {
       <div class="lot-summary">
         <div class="stat">LOT ID<b>${data.lot_id}</b></div>
         <div class="stat">WAFER 數<b>${data.wafer_count}</b></div>
+        <div class="stat">規則判定 None<b>${ruleCount} 片</b></div>
         <div class="stat" style="flex:1;">PATTERN 分佈<div class="pattern-chips" style="margin-top:6px;">${chips}</div></div>
+      </div>
+      <div style="font-family:var(--mono); font-size:10.5px; color:#4c5768; margin-top:4px;">
+        良率 ≥ ${thresholdUsed}% 的 wafer 直接規則判定為 None，不經過 AI 模型
       </div>
     </div>
     <div class="panel" style="margin-top:16px;">
@@ -811,8 +1093,10 @@ function renderBatchResults(data) {
             <th>Wafer ID</th>
             <th>Yield</th>
             <th>Pass / Fail</th>
+            <th>主要 Fail 測項</th>
             <th>判定 Pattern</th>
             <th>信心</th>
+            <th>修正標籤</th>
           </tr>
         </thead>
         <tbody id="waferTbody"></tbody>
@@ -825,27 +1109,84 @@ function renderBatchResults(data) {
   const tbody = document.getElementById('waferTbody');
   data.results.forEach((r, idx) => {
     const top = r.predictions[0];
+    const failTestLabel = r.dominant_fail_test
+      ? `${r.dominant_fail_test} <span style="color:var(--muted)">(bin ${r.dominant_fail_bin})</span>`
+      : '<span style="color:var(--muted)">—</span>';
+
+    const options = WAFER_CLASSES.map(c =>
+      `<option value="${c}" ${c === top.label ? 'selected' : ''}>${CLASS_DISPLAY_LABEL[c] || c}</option>`
+    ).join('') + `<option value="Unclear">不確定/其他</option>`;
+
+    const patTag = r.rule_based
+      ? `<span class="pat-tag pat-tag-rule" title="良率規則判定，未執行 AI 模型">${top.label} <span style="font-size:9px;">RULE</span></span>`
+      : `<span class="pat-tag">${top.label}</span>`;
+    const confCell = r.rule_based ? '—' : `${(top.prob*100).toFixed(1)}%`;
+    const confCellClass = r.rule_based ? '' : confClass(top.prob*100);
+
     const tr = document.createElement('tr');
     tr.className = 'wrow';
     tr.dataset.idx = idx;
+    tr.dataset.filename = r.filename;
     tr.innerHTML = `
       <td><canvas class="mini-canvas" width="36" height="36"></canvas></td>
       <td class="wafer-id">${r.wafer_id}</td>
       <td class="yield-cell ${yieldClass(r.yield_pct)}">${r.yield_pct}%</td>
       <td>${r.n_pass} / ${r.n_fail}</td>
-      <td><span class="pat-tag">${top.label}</span></td>
-      <td class="conf-cell">${(top.prob*100).toFixed(1)}%</td>
+      <td style="font-family:var(--mono); font-size:11.5px;">${failTestLabel}</td>
+      <td>${patTag}</td>
+      <td class="conf-cell ${confCellClass}">${confCell}</td>
+      <td class="correction-cell">
+        <select class="corr-select">${options}</select>
+        <button class="corr-save-btn" title="儲存修正">存</button>
+        <span class="corr-status"></span>
+      </td>
     `;
     tbody.appendChild(tr);
     drawMiniReticle(tr.querySelector('canvas'), r.preview);
 
     const detailTr = document.createElement('tr');
     detailTr.style.display = 'none';
-    detailTr.innerHTML = `<td colspan="6" class="detail-row">${buildDetailBars(r.predictions)}</td>`;
+    detailTr.innerHTML = `<td colspan="8" class="detail-row">${
+      r.rule_based
+        ? `<div style="color:var(--muted); font-size:12.5px;">${top.desc} 因此沒有各類別機率可顯示。</div>`
+        : buildDetailBars(r.predictions)
+    }</td>`;
     tbody.appendChild(detailTr);
 
     tr.addEventListener('click', () => {
       detailTr.style.display = detailTr.style.display === 'none' ? '' : 'none';
+    });
+
+    const select = tr.querySelector('.corr-select');
+    const saveBtn = tr.querySelector('.corr-save-btn');
+    const statusEl = tr.querySelector('.corr-status');
+    select.addEventListener('click', e => e.stopPropagation());
+    saveBtn.addEventListener('click', async e => {
+      e.stopPropagation();
+      const file = collectedFiles.find(f => f.name === r.filename);
+      if (!file) {
+        statusEl.textContent = '找不到原始檔案';
+        return;
+      }
+      saveBtn.disabled = true;
+      statusEl.textContent = '儲存中…';
+      const fd = new FormData();
+      fd.append('file', file, file.name);
+      fd.append('corrected_label', select.value);
+      fd.append('original_pred', top.label);
+      fd.append('original_conf', (top.prob === null || top.prob === undefined) ? 'rule_based' : top.prob);
+      try {
+        const res = await fetch('/save_correction', { method: 'POST', body: fd });
+        const j = await res.json();
+        if (!res.ok || j.error) throw new Error(j.error || '儲存失敗');
+        statusEl.textContent = '✓ 已儲存';
+        statusEl.style.color = 'var(--ok)';
+      } catch (err) {
+        statusEl.textContent = '✗ ' + err.message;
+        statusEl.style.color = '#ff6b6b';
+      } finally {
+        saveBtn.disabled = false;
+      }
     });
   });
 }
@@ -886,6 +1227,170 @@ function renderResults(predictions) {
     });
   });
 }
+
+// ===================== HOTSPOT DETECTION (shared) =====================
+
+function hotspotColor(failCount, testedCount, maxCount) {
+  if (testedCount === 0) return '#05070b';           // never appears on any wafer
+  if (failCount === 0) return '#1f3a4a';              // tested, never failed here
+  const t = maxCount > 0 ? failCount / maxCount : 0;  // 0..1 intensity
+  // light orange -> bright red
+  const r = Math.round(255);
+  const g = Math.round(184 - t * 150);
+  const b = Math.round(94 - t * 80);
+  return `rgb(${r},${Math.max(g,20)},${Math.max(b,20)})`;
+}
+
+function drawHotspotCanvas(canvas, failCount2d, testedCount2d, maxCount) {
+  const h = failCount2d.length, w = failCount2d[0].length;
+  const size = Math.min(420, Math.max(240, w * 12));
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const cell = size / Math.max(w, h);
+  ctx.clearRect(0, 0, size, size);
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(size/2, size/2, size/2 - 2, 0, Math.PI * 2);
+  ctx.clip();
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      ctx.fillStyle = hotspotColor(failCount2d[y][x], testedCount2d[y][x], maxCount);
+      ctx.fillRect(x*cell, y*cell, cell+0.5, cell+0.5);
+    }
+  }
+  ctx.restore();
+  ctx.strokeStyle = '#253247';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.arc(size/2, size/2, size/2 - 2, 0, Math.PI * 2);
+  ctx.stroke();
+}
+
+function renderHotspotPanel(container, data) {
+  if (data.error) {
+    container.innerHTML = `<div class="err">${data.error}</div>`;
+    return;
+  }
+  const n = data.n_wafers;
+  const isSingle = n === 1;
+
+  const title = isSingle
+    ? '此片 Wafer 的 Fail Die 座標分佈'
+    : '跨 Wafer 同座標失效熱點（系統性訊號偵測）';
+
+  const desc = isSingle
+    ? `紅色標出這片 wafer 實際 fail 的 die 座標，深藍色為測試過且良好的區域，全黑為此座標範圍內未測試/無 die。`
+    : `此圖統計同一 (X,Y) 座標在 ${n} 片中失效的次數（越紅=越多片在同一位置失效）。若某些座標在多片中重複失效，代表很可能是<b>固定機構造成</b>（探針卡特定 pin、chuck 固定污染點、cassette 特定 slot、或 chamber 內固定氣流死角），而非單純隨機顆粒。最高重複次數：<b>${data.max_count} / ${n} 片</b>。`;
+
+  let html = `
+    <div class="hotspot-panel">
+      <div class="hotspot-title">${title}</div>
+      <div class="hotspot-desc">${desc}</div>
+      <div class="hotspot-canvas-wrap"><canvas></canvas></div>
+  `;
+
+  if (!isSingle && data.top_coords.length) {
+    const items = data.top_coords.map(c =>
+      `<span class="hs-item">(${c.x},${c.y}) → ${c.count}/${n} 片</span>`
+    ).join('&nbsp;&nbsp;|&nbsp;&nbsp;');
+    html += `
+      <div class="hotspot-toplist">
+        <div class="hs-label">重複失效次數最高的座標 (Top ${data.top_coords.length})</div>
+        ${items}
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+  drawHotspotCanvas(container.querySelector('canvas'), data.fail_count, data.tested_count, data.max_count);
+}
+
+// --- Single Wafer: upload one CSV, show its own fail-die map ---
+const singleCsvDropzone = document.getElementById('singleCsvDropzone');
+const singleCsvInput = document.getElementById('singleCsvInput');
+const singleCsvFilename = document.getElementById('singleCsvFilename');
+const singleHotspotBtn = document.getElementById('singleHotspotBtn');
+const singleHotspotResult = document.getElementById('singleHotspotResult');
+let singleCsvFile = null;
+
+singleCsvDropzone.addEventListener('click', () => singleCsvInput.click());
+singleCsvDropzone.addEventListener('dragover', e => { e.preventDefault(); singleCsvDropzone.classList.add('drag'); });
+singleCsvDropzone.addEventListener('dragleave', () => singleCsvDropzone.classList.remove('drag'));
+singleCsvDropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  singleCsvDropzone.classList.remove('drag');
+  if (e.dataTransfer.files.length) setSingleCsvFile(e.dataTransfer.files[0]);
+});
+singleCsvInput.addEventListener('change', e => {
+  if (e.target.files.length) setSingleCsvFile(e.target.files[0]);
+});
+
+function setSingleCsvFile(file) {
+  if (!file.name.toLowerCase().endsWith('.csv')) {
+    singleCsvFilename.textContent = '請選擇 .csv 檔案';
+    return;
+  }
+  singleCsvFile = file;
+  singleCsvFilename.textContent = file.name;
+  singleHotspotBtn.disabled = false;
+}
+
+singleHotspotBtn.addEventListener('click', async () => {
+  if (!singleCsvFile) return;
+  singleHotspotBtn.disabled = true;
+  singleHotspotBtn.textContent = '分析中…';
+  singleHotspotResult.innerHTML = '<div class="empty-state">解析 test log 中…</div>';
+
+  const fd = new FormData();
+  fd.append('files', singleCsvFile, singleCsvFile.name);
+
+  try {
+    const res = await fetch('/hotspot_batch', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || '未知錯誤');
+    renderHotspotPanel(singleHotspotResult, data);
+  } catch (err) {
+    singleHotspotResult.innerHTML = `<div class="err">${err.message}</div>`;
+  } finally {
+    singleHotspotBtn.disabled = false;
+    singleHotspotBtn.textContent = '顯示 Fail Bin 分佈圖';
+  }
+});
+
+// --- Whole Lot: reuse already-selected batch CSVs for cross-wafer hotspot ---
+const lotHotspotBtn = document.getElementById('lotHotspotBtn');
+const lotHotspotResult = document.getElementById('lotHotspotResult');
+
+// Enable/disable alongside the existing batch run button, whenever files change.
+const _origRenderFileList = renderFileList;
+renderFileList = function() {
+  _origRenderFileList();
+  lotHotspotBtn.disabled = collectedFiles.length === 0;
+};
+
+lotHotspotBtn.addEventListener('click', async () => {
+  if (!collectedFiles.length) return;
+  lotHotspotBtn.disabled = true;
+  lotHotspotBtn.textContent = '分析中…';
+  lotHotspotResult.innerHTML = '<div class="empty-state">正在比對跨 wafer 座標…</div>';
+
+  const fd = new FormData();
+  collectedFiles.forEach(f => fd.append('files', f, f.name));
+
+  try {
+    const res = await fetch('/hotspot_batch', { method: 'POST', body: fd });
+    const data = await res.json();
+    if (!res.ok || data.error) throw new Error(data.error || '未知錯誤');
+    renderHotspotPanel(lotHotspotResult, data);
+  } catch (err) {
+    lotHotspotResult.innerHTML = `<div class="err">${err.message}</div>`;
+  } finally {
+    lotHotspotBtn.disabled = collectedFiles.length === 0;
+    lotHotspotBtn.textContent = '偵測跨 Wafer 同座標失效熱點';
+  }
+});
 </script>
 </body>
 </html>
