@@ -280,6 +280,198 @@
     border-bottom: 2px solid var(--accent);
   }
 
+  /* --- Guide tab --- */
+  .guide-panel { margin-bottom: 20px; }
+  .guide-panel h2 {
+    display: block;
+    font-family: var(--sans);
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text);
+    margin: 0 0 14px;
+  }
+  .guide-panel h2 .step-no {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px; height: 22px;
+    margin-right: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #1a0f04;
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .guide-panel p, .guide-panel li { color: var(--muted); font-size: 13.5px; line-height: 1.75; }
+  .guide-panel strong { color: var(--text); font-weight: 600; }
+  .guide-panel ol, .guide-panel ul { margin: 0 0 6px; padding-left: 20px; }
+  .guide-panel li { margin-bottom: 6px; }
+  .guide-panel .lead {
+    font-size: 13.5px;
+    color: var(--muted);
+    line-height: 1.75;
+    margin: 0 0 4px;
+  }
+  .guide-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+  }
+  @media (max-width: 760px) {
+    .guide-grid { grid-template-columns: 1fr; }
+  }
+  .guide-code {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text);
+    background: #0d141f;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    line-height: 1.7;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .guide-tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: rgba(255,138,61,.1);
+    border: 1px solid rgba(255,138,61,.3);
+    border-radius: 5px;
+    padding: 1px 7px;
+  }
+  .guide-panel .faq-q {
+    color: var(--text);
+    font-weight: 600;
+    font-size: 13.5px;
+    margin: 0 0 4px;
+  }
+  .guide-panel .faq-a { margin: 0 0 16px; }
+  .guide-panel .faq-a:last-child { margin-bottom: 0; }
+
+  /* --- Retrain config widget --- */
+  .train-config-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin: 16px 0;
+  }
+  @media (max-width: 640px) {
+    .train-config-grid { grid-template-columns: 1fr; }
+  }
+  .train-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px 12px;
+    background: var(--panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .train-field label {
+    font-size: 11.5px;
+    color: var(--muted);
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+  }
+  .train-field label .val {
+    font-family: var(--mono);
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .train-field input[type="range"] {
+    width: 100%;
+    accent-color: var(--accent);
+  }
+  .train-field input[type="number"],
+  .train-field select {
+    width: 100%;
+    background: #0d141f;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 12.5px;
+    padding: 6px 8px;
+  }
+  .train-field .hint-sm {
+    font-size: 10.5px;
+    color: #5b6b85;
+    line-height: 1.5;
+  }
+  .train-toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0 4px;
+    font-size: 12.5px;
+    color: var(--text);
+  }
+  .train-toggle-row input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; }
+
+  button#genTrainBtn {
+    width: 100%;
+    margin-top: 14px;
+    padding: 12px;
+    border-radius: 9px;
+    border: 1px solid var(--accent-dim);
+    background: var(--accent);
+    color: #1a0f04;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: .02em;
+    cursor: pointer;
+    transition: filter .15s ease, transform .05s ease;
+  }
+  button#genTrainBtn:hover { filter: brightness(1.08); }
+  button#genTrainBtn:active { transform: scale(.99); }
+
+  .train-output {
+    margin-top: 16px;
+  }
+  .train-output-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .train-output-head .lbl {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .train-output pre {
+    max-height: 460px;
+    overflow: auto;
+    background: #0d141f;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: #c9d4e3;
+    white-space: pre;
+  }
+  .compare-note {
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: rgba(255,138,61,.06);
+    border: 1px solid rgba(255,138,61,.25);
+    border-radius: 8px;
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
   /* --- Batch dropzone --- */
   #batchDropzone {
     border: 1.5px dashed var(--line);
@@ -618,6 +810,7 @@
   <div class="tabs" id="tabsContainer">
     <button class="tab active" data-tab="single">Single Wafer</button>
     <button class="tab" data-tab="batch">Whole Lot</button>
+    <button class="tab" data-tab="guide">Instructions</button>
   </div>
 
   <!-- ===================== SINGLE IMAGE MODE ===================== -->
@@ -697,6 +890,29 @@
     </div>
 
     <div id="batchResults"></div>
+  </div>
+
+  <!-- ===================== GUIDE / HELP MODE ===================== -->
+  <div class="tab-panel" id="tab-guide" style="display:none;">
+
+    <div class="panel guide-panel">
+      <h2>Instructions</h2>
+      <p class="lead">
+        完整的使用說明（Single Wafer / Whole Lot 操作步驟、CSV 格式規則、標籤修正流程），
+        以及重新訓練模型的資料策略、建議硬體規格、訓練時間估算與訓練程式碼產生工具，
+        已整理成一份獨立文件：
+      </p>
+      <p style="margin:14px 0;">
+        <a href="../Wafer Defect Classifier Instructions.html" target="_blank"
+           style="display:inline-block; padding:10px 18px; border-radius:9px; background:var(--accent); color:#1a0f04; font-weight:600; font-size:13px; text-decoration:none;">
+          開啟 Wafer Defect Classifier Instructions.html ↗
+        </a>
+      </p>
+      <p class="lead" style="font-size:12px; color:#5b6b85;">
+        這是一份獨立的 HTML 檔案，會在新分頁開啟，不需要透過本頁的伺服器路由即可單獨檢視或分享。
+      </p>
+    </div>
+
   </div>
 
   <details class="panel pattern-ref-panel">
@@ -895,14 +1111,364 @@ if (tabsContainer) {
     document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     const target = btn.dataset.tab;
-    const single = document.getElementById('tab-single');
-    const batch = document.getElementById('tab-batch');
-    if (single) single.style.display = target === 'single' ? '' : 'none';
-    if (batch) batch.style.display = target === 'batch' ? '' : 'none';
+    document.querySelectorAll('.tab-panel').forEach(panel => {
+      panel.style.display = panel.id === `tab-${target}` ? '' : 'none';
+    });
   });
 } else {
   console.error('tabsContainer not found — tab switching disabled');
 }
+
+// ===================== RETRAIN SCRIPT GENERATOR =====================
+(function () {
+  const els = {
+    useFull: document.getElementById('useFullDataset'),
+    subsetField: document.getElementById('subsetField'),
+    subset: document.getElementById('subsetPerClass'),
+    subsetVal: document.getElementById('subsetPerClassVal'),
+    corr: document.getElementById('corrOversample'),
+    corrVal: document.getElementById('corrOversampleVal'),
+    val: document.getElementById('valSplit'),
+    valVal: document.getElementById('valSplitVal'),
+    epochs: document.getElementById('epochsInput'),
+    batch: document.getElementById('batchSizeSelect'),
+    lr: document.getElementById('lrInput'),
+    genBtn: document.getElementById('genTrainBtn'),
+    outWrap: document.getElementById('trainOutputWrap'),
+    outCode: document.getElementById('trainOutputCode'),
+    dlBtn: document.getElementById('downloadTrainBtn'),
+  };
+  if (!els.genBtn) return; // guide tab markup not present, nothing to wire up
+
+  els.subset.addEventListener('input', () => { els.subsetVal.textContent = els.subset.value; });
+  els.corr.addEventListener('input', () => { els.corrVal.textContent = els.corr.value + '×'; });
+  els.val.addEventListener('input', () => { els.valVal.textContent = els.val.value + '%'; });
+  els.useFull.addEventListener('change', () => {
+    els.subsetField.style.opacity = els.useFull.checked ? '.4' : '1';
+    els.subset.disabled = els.useFull.checked;
+  });
+
+  function buildScript(p) {
+    const subsetBlock = p.useFull
+      ? `    # --useFullDataset was checked: keep every labeled wafer from LSWMD.pkl.
+    print(f"Using full original dataset: {len(orig_maps)} wafers.")`
+      : `    # Representative subset instead of the full 172k+ wafers: cap each
+    # class at ${p.subsetPerClass} samples. Common practice for small-scale
+    # fine-tuning — keeps the class balance of the sample step reasonable
+    # while cutting data-loading/training time drastically.
+    rng = np.random.default_rng(42)
+    keep_idx = []
+    for c in range(len(CLASSES)):
+        idx_c = np.where(orig_labels == c)[0]
+        if len(idx_c) > ${p.subsetPerClass}:
+            idx_c = rng.choice(idx_c, size=${p.subsetPerClass}, replace=False)
+        keep_idx.extend(idx_c.tolist())
+    keep_idx = np.array(keep_idx)
+    orig_maps = [orig_maps[i] for i in keep_idx]
+    orig_labels = orig_labels[keep_idx]
+    print(f"Subsampled original dataset to {len(orig_maps)} wafers "
+          f"(cap {${p.subsetPerClass}}/class).")`;
+
+    return `"""
+Retraining script — auto-generated from the "重新訓練模型" widget in index.html.
+
+Mixes the original WM-811K dataset with your accumulated corrections from
+corrected_labels/, oversamples the (small) correction set so it isn't
+drowned out, holds out a validation split taken ONLY from the original
+data, and compares the new checkpoint against the current
+best_radai_resnet.pt on that same validation set before you decide
+whether to replace it.
+
+Generated settings:
+  - Dataset:                 ${p.useFull ? 'full WM-811K (~172k wafers)' : `subset, cap ${p.subsetPerClass} per class`}
+  - Correction oversample:   ${p.corrOversample}x
+  - Validation split:        ${p.valSplit}% of ORIGINAL data (corrections are never used for validation)
+  - Epochs / batch / lr:     ${p.epochs} / ${p.batchSize} / ${p.lr}
+
+Usage:
+  pip install torch torchvision scikit-learn numpy scipy pandas --break-system-packages
+  python retrain.py --data LSWMD.pkl --corrections corrected_labels --old-checkpoint best_radai_resnet.pt --out best_radai_resnet_v2.pt
+"""
+
+import argparse
+import csv
+import os
+import time
+
+import numpy as np
+import pandas as pd
+import torch
+import torch.nn as nn
+from scipy.ndimage import zoom
+from sklearn.metrics import accuracy_score, f1_score
+from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader, Dataset
+from torchvision import models
+
+CLASSES = [
+    "Center", "Donut", "Edge-Loc", "Edge-Ring",
+    "Loc", "Random", "Scratch", "Near-full",
+]
+CLASS_TO_IDX = {c: i for i, c in enumerate(CLASSES)}
+
+
+# --------------------------------------------------------------------------
+# Model / preprocessing — kept byte-for-byte identical to app.py so the
+# resulting checkpoint is a drop-in replacement.
+# --------------------------------------------------------------------------
+class RadAI_ResNet(nn.Module):
+    def __init__(self, num_classes=8):
+        super().__init__()
+        self.base = models.resnet34(weights=None)
+        self.base.conv1 = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
+        self.base.fc = nn.Sequential(
+            nn.Dropout(0.5),
+            nn.Linear(self.base.fc.in_features, num_classes),
+        )
+
+    def forward(self, x):
+        return self.base(x)
+
+
+def to_model_input(wafer_map: np.ndarray) -> np.ndarray:
+    h, w = wafer_map.shape
+    resized = zoom(wafer_map, (64 / h, 64 / w), order=1)[:64, :64]
+    if resized.max() > 0:
+        resized = resized / resized.max()
+    return resized.astype(np.float32)
+
+
+def extract_failure_label(raw_label):
+    if isinstance(raw_label, np.ndarray):
+        if raw_label.size == 0:
+            return None
+        raw_label = raw_label.reshape(-1)[0]
+    if not isinstance(raw_label, str):
+        return None
+    raw_label = raw_label.strip()
+    return raw_label if raw_label in CLASS_TO_IDX else None
+
+
+class WaferDataset(Dataset):
+    def __init__(self, wafer_maps, labels, augment=False):
+        self.wafer_maps = wafer_maps
+        self.labels = labels
+        self.augment = augment
+
+    def __len__(self):
+        return len(self.wafer_maps)
+
+    def __getitem__(self, idx):
+        img = to_model_input(self.wafer_maps[idx])
+        if self.augment:
+            k = np.random.randint(4)
+            img = np.rot90(img, k).copy()
+            if np.random.rand() < 0.5:
+                img = np.fliplr(img).copy()
+        return torch.from_numpy(img).unsqueeze(0), self.labels[idx]
+
+
+# --------------------------------------------------------------------------
+# Data loading — original WM-811K + accumulated corrections
+# --------------------------------------------------------------------------
+def load_original(pkl_path):
+    df = pd.read_pickle(pkl_path)
+    maps, labels = [], []
+    for wm, ft in zip(df["waferMap"], df["failureType"]):
+        label_name = extract_failure_label(ft)
+        if label_name is None or wm is None or wm.ndim != 2 or min(wm.shape) < 2:
+            continue
+        maps.append(wm)
+        labels.append(CLASS_TO_IDX[label_name])
+    return maps, np.array(labels, dtype=np.int64)
+
+
+def load_corrections(corrections_dir):
+    """Reads corrected_labels/labels.csv + corrected_labels/binmaps/*.npy.
+    Skips 'Unsure/Other' rows and anything whose .npy file is missing."""
+    labels_csv = os.path.join(corrections_dir, "labels.csv")
+    binmaps_dir = os.path.join(corrections_dir, "binmaps")
+    maps, labels = [], []
+    if not os.path.exists(labels_csv):
+        print(f"No corrections found at {labels_csv}, skipping.")
+        return maps, np.array(labels, dtype=np.int64)
+
+    with open(labels_csv, newline="", encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f):
+            label_name = row.get("corrected_label", "").strip()
+            if label_name not in CLASS_TO_IDX:
+                continue  # e.g. "Unsure/Other" — not usable as a training label
+            npy_path = os.path.join(binmaps_dir, row.get("binmap_file", ""))
+            npy_path = os.path.join(corrections_dir, row["binmap_file"]) if not os.path.isabs(npy_path) else npy_path
+            if not os.path.exists(npy_path):
+                continue
+            raw_bin_map = np.load(npy_path)
+            # Corrections store raw Bin# maps (0=bg, 1=pass, other=fail),
+            # same convention app.py already feeds into the model.
+            maps.append(raw_bin_map)
+            labels.append(CLASS_TO_IDX[label_name])
+    return maps, np.array(labels, dtype=np.int64)
+
+
+# --------------------------------------------------------------------------
+# Training
+# --------------------------------------------------------------------------
+def train(args):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
+    print(f"Loading original dataset from {args.data} ...")
+    orig_maps, orig_labels = load_original(args.data)
+    print(f"Loaded {len(orig_maps)} labeled original wafers.")
+
+${subsetBlock}
+
+    print(f"Loading corrections from {args.corrections} ...")
+    corr_maps, corr_labels = load_corrections(args.corrections)
+    print(f"Loaded {len(corr_maps)} corrected wafers.")
+
+    # Validation split comes ONLY from the original data — corrections are
+    # never held out, so every correction can be used to actually move the
+    # model, and the validation set stays an apples-to-apples benchmark
+    # against the currently deployed checkpoint.
+    idx_train, idx_val = train_test_split(
+        np.arange(len(orig_labels)), test_size=${(p.valSplit / 100).toFixed(2)},
+        stratify=orig_labels, random_state=42,
+    )
+    val_maps = [orig_maps[i] for i in idx_val]
+    val_labels = orig_labels[idx_val]
+
+    train_maps = [orig_maps[i] for i in idx_train] + corr_maps
+    train_labels = np.concatenate([orig_labels[idx_train], corr_labels])
+    is_correction = np.concatenate([
+        np.zeros(len(idx_train), dtype=bool),
+        np.ones(len(corr_labels), dtype=bool),
+    ])
+
+    train_ds = WaferDataset(train_maps, train_labels, augment=True)
+    val_ds = WaferDataset(val_maps, val_labels, augment=False)
+
+    # Sample weights: corrections get an extra ${p.corrOversample}x multiplier on
+    # top of inverse-class-frequency weighting, so a handful of corrected
+    # labels aren't drowned out by the much larger original set.
+    class_counts = np.bincount(train_labels, minlength=len(CLASSES))
+    class_weights = 1.0 / np.maximum(class_counts, 1)
+    sample_weights = class_weights[train_labels]
+    sample_weights = np.where(is_correction, sample_weights * ${p.corrOversample}, sample_weights)
+    sampler = torch.utils.data.WeightedRandomSampler(
+        sample_weights, num_samples=len(sample_weights), replacement=True,
+    )
+
+    train_loader = DataLoader(train_ds, batch_size=${p.batchSize}, sampler=sampler,
+                               num_workers=args.workers, pin_memory=True)
+    val_loader = DataLoader(val_ds, batch_size=${p.batchSize}, shuffle=False,
+                             num_workers=args.workers, pin_memory=True)
+
+    model = RadAI_ResNet(num_classes=len(CLASSES)).to(device)
+    loss_weights = torch.tensor(class_weights / class_weights.sum() * len(CLASSES),
+                                 dtype=torch.float32, device=device)
+    criterion = nn.CrossEntropyLoss(weight=loss_weights)
+    optimizer = torch.optim.AdamW(model.parameters(), lr=${p.lr}, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=${p.epochs})
+
+    best_val_f1 = -1.0
+    for epoch in range(1, ${p.epochs} + 1):
+        t0 = time.time()
+        model.train()
+        running_loss = 0.0
+        for x, y in train_loader:
+            x, y = x.to(device, non_blocking=True), y.to(device, non_blocking=True)
+            optimizer.zero_grad()
+            loss = criterion(model(x), y)
+            loss.backward()
+            optimizer.step()
+            running_loss += loss.item() * x.size(0)
+        scheduler.step()
+
+        val_acc, val_f1 = evaluate(model, val_loader, device)
+        print(f"epoch {epoch:3d}/${p.epochs} | train_loss {running_loss/len(train_ds):.4f} "
+              f"| val_acc {val_acc:.4f} | val_macro_f1 {val_f1:.4f} | {time.time()-t0:.1f}s")
+
+        if val_f1 > best_val_f1:
+            best_val_f1 = val_f1
+            torch.save({"model_state_dict": model.state_dict(),
+                        "classes": CLASSES, "val_macro_f1": val_f1, "epoch": epoch},
+                       args.out)
+            print(f"  -> saved new best checkpoint to {args.out} (macro_f1={val_f1:.4f})")
+
+    # --- Compare against the currently deployed checkpoint on the SAME
+    # original-only validation set, so you can decide whether to replace it.
+    if args.old_checkpoint and os.path.exists(args.old_checkpoint):
+        old_model = RadAI_ResNet(num_classes=len(CLASSES)).to(device)
+        ckpt = torch.load(args.old_checkpoint, map_location=device)
+        old_model.load_state_dict(ckpt.get("model_state_dict", ckpt))
+        _, old_f1 = evaluate(old_model, val_loader, device)
+        print(f"\\nComparison on held-out original-data validation set:")
+        print(f"  current deployed model ({args.old_checkpoint}): macro_f1 = {old_f1:.4f}")
+        print(f"  newly retrained model  ({args.out}):            macro_f1 = {best_val_f1:.4f}")
+        verdict = "BETTER — safe to replace" if best_val_f1 >= old_f1 else "WORSE — do not replace, investigate first"
+        print(f"  verdict: {verdict}")
+    else:
+        print(f"\\nDone. Best val_macro_f1 = {best_val_f1:.4f}. Checkpoint: {args.out}")
+        print("(No --old-checkpoint given/found, skipped comparison against the deployed model.)")
+
+
+@torch.no_grad()
+def evaluate(model, loader, device):
+    model.eval()
+    all_preds, all_true = [], []
+    for x, y in loader:
+        preds = model(x.to(device)).argmax(dim=1).cpu().numpy()
+        all_preds.append(preds)
+        all_true.append(y.numpy())
+    all_preds = np.concatenate(all_preds)
+    all_true = np.concatenate(all_true)
+    return accuracy_score(all_true, all_preds), f1_score(all_true, all_preds, average="macro")
+
+
+def parse_args():
+    p = argparse.ArgumentParser()
+    p.add_argument("--data", default="LSWMD.pkl", help="Path to WM-811K LSWMD.pkl")
+    p.add_argument("--corrections", default="corrected_labels", help="Path to corrected_labels/ folder")
+    p.add_argument("--old-checkpoint", default="best_radai_resnet.pt", help="Currently deployed checkpoint, for comparison")
+    p.add_argument("--out", default="best_radai_resnet_v2.pt", help="Output checkpoint path")
+    p.add_argument("--workers", type=int, default=4)
+    return p.parse_args()
+
+
+if __name__ == "__main__":
+    train(parse_args())
+`;
+  }
+
+  els.genBtn.addEventListener('click', () => {
+    const params = {
+      useFull: els.useFull.checked,
+      subsetPerClass: parseInt(els.subset.value, 10),
+      corrOversample: parseInt(els.corr.value, 10),
+      valSplit: parseInt(els.val.value, 10),
+      epochs: parseInt(els.epochs.value, 10) || 30,
+      batchSize: parseInt(els.batch.value, 10),
+      lr: parseFloat(els.lr.value) || 0.0003,
+    };
+    const code = buildScript(params);
+    els.outCode.textContent = code;
+    els.outWrap.style.display = '';
+    els.outWrap.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  });
+
+  els.dlBtn.addEventListener('click', () => {
+    const blob = new Blob([els.outCode.textContent], { type: 'text/x-python' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'retrain.py';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  });
+})();
 
 // ===================== BATCH MODE =====================
 const batchDropzone = document.getElementById('batchDropzone');
