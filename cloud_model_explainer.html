@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>為什麼把 AI 模型搬上雲端，本地端就瘦了</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans+TC:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f7f5;
+    --panel:#ffffff;
+    --ink:#141a1f;
+    --ink-soft:#5b6670;
+    --line:#dde2e0;
+    --teal:#0c8f88;
+    --teal-soft:#e3f4f2;
+    --amber:#c9782e;
+    --amber-soft:#faead9;
+    --grid-fail:#c9782e;
+    --grid-pass:#0c8f88;
+    --grid-empty:#e7e9e6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans TC','Noto Sans TC',sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:0 24px;}
+  code, .mono{font-family:'IBM Plex Mono',monospace;}
+
+  /* ---------- Hero ---------- */
+  header.hero{
+    padding:88px 0 56px;
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    letter-spacing:.12em;
+    color:var(--teal);
+    text-transform:uppercase;
+    margin:0 0 18px;
+  }
+  h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:clamp(30px,4.4vw,46px);
+    line-height:1.18;
+    letter-spacing:-0.01em;
+    margin:0 0 22px;
+    max-width:760px;
+  }
+  .lede{
+    font-size:17px;
+    color:var(--ink-soft);
+    max-width:600px;
+    margin:0 0 40px;
+  }
+
+  .wafer-signature{
+    display:flex;
+    align-items:center;
+    gap:28px;
+    flex-wrap:wrap;
+  }
+  .wafer-grid{
+    display:grid;
+    grid-template-columns:repeat(9,10px);
+    grid-template-rows:repeat(9,10px);
+    gap:3px;
+    flex:none;
+  }
+  .wafer-grid div{
+    width:10px;height:10px;border-radius:2px;
+    background:var(--grid-empty);
+  }
+  .wafer-caption{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    max-width:340px;
+  }
+  .wafer-caption b{color:var(--ink);font-weight:600;}
+
+  /* ---------- Sections ---------- */
+  section{padding:56px 0;border-bottom:1px solid var(--line);}
+  section:last-of-type{border-bottom:none;}
+  .kicker{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    letter-spacing:.06em;
+    margin:0 0 10px;
+  }
+  h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:26px;
+    font-weight:600;
+    margin:0 0 20px;
+    letter-spacing:-.01em;
+  }
+  p{margin:0 0 16px;color:var(--ink);}
+  p.muted{color:var(--ink-soft);}
+
+  /* ---------- size bars ---------- */
+  .size-compare{margin:28px 0 8px;}
+  .size-row{margin-bottom:22px;}
+  .size-label{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:13px;margin-bottom:8px;
+  }
+  .size-label span:first-child{color:var(--ink);font-weight:500;}
+  .size-label span:last-child{color:var(--ink-soft);}
+  .bar-track{height:14px;background:var(--line);border-radius:3px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:3px;}
+  .bar-fill.heavy{background:var(--amber);width:100%;}
+  .bar-fill.light{background:var(--teal);width:6%;}
+
+  /* ---------- architecture diagram ---------- */
+  .diagram{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:32px 24px 28px;
+    margin:28px 0;
+  }
+  .diagram svg{display:block;width:100%;height:auto;}
+  .diagram-note{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+    text-align:center;
+    margin-top:14px;
+  }
+
+  /* ---------- two-column compare ---------- */
+  .duo{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+    margin:28px 0;
+  }
+  @media(max-width:640px){.duo{grid-template-columns:1fr;}}
+  .card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:22px 22px 20px;
+  }
+  .card .tag{
+    display:inline-block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    letter-spacing:.06em;
+    padding:3px 9px;
+    border-radius:999px;
+    margin-bottom:14px;
+  }
+  .card.teal .tag{background:var(--teal-soft);color:var(--teal);}
+  .card.amber .tag{background:var(--amber-soft);color:var(--amber);}
+  .card h3{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:17px;font-weight:600;margin:0 0 10px;
+  }
+  .card ul{margin:0;padding-left:18px;color:var(--ink-soft);font-size:14.5px;}
+  .card li{margin-bottom:6px;}
+
+  /* ---------- callout ---------- */
+  .callout{
+    border-left:3px solid var(--amber);
+    background:var(--amber-soft);
+    padding:16px 20px;
+    border-radius:0 8px 8px 0;
+    font-size:14.5px;
+    color:#5c3d1a;
+    margin:24px 0;
+  }
+  .callout b{color:#3d2810;}
+
+  footer{
+    padding:40px 0 80px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    color:var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="hero">
+    <p class="eyebrow">Wafer Defect Demo — 架構筆記</p>
+    <h1>本地端不用裝 PyTorch，<br>是因為它被搬到了另一個房間</h1>
+    <p class="lede">
+      這份筆記說明：為什麼把 AI 模型部署成 Hugging Face Space 之後，
+      你本機的 <span class="mono">venv</span> 可以從一大包瘦成幾十 MB，
+      以及這中間資料到底是怎麼流動的。
+    </p>
+    <div class="wafer-signature">
+      <div class="wafer-grid" id="waferGrid"></div>
+      <p class="wafer-caption">
+        <b>把它想成一片 wafer map：</b>大部分的 die 良好（<span style="color:var(--teal)">■</span> pass），
+        少數幾顆才需要送進更複雜的分析流程（<span style="color:var(--amber)">■</span> 需要 AI 模型）。
+        你的本地端程式，做的正是同一件事。
+      </p>
+    </div>
+  </header>
+
+  <section>
+    <p class="kicker">問題出在哪</p>
+    <h2>torch 佔掉的，不是你程式的重量，是「以防萬一」的重量</h2>
+    <p>
+      你原本的本地 <span class="mono">app.py</span> 為了能做推論，得把整套
+      <span class="mono">torch</span> / <span class="mono">torchvision</span> 裝進 venv——
+      即使 90% 以上的 wafer 良率一看就過關、根本用不到模型。
+      這包依賴通常就佔掉 venv 一大半的體積。
+    </p>
+    <div class="size-compare">
+      <div class="size-row">
+        <div class="size-label"><span>含 torch 的本地 venv</span><span>flask + numpy + scipy + torch + torchvision + huggingface_hub</span></div>
+        <div class="bar-track"><div class="bar-fill heavy"></div></div>
+      </div>
+      <div class="size-row">
+        <div class="size-label"><span>拆分後的本地 venv</span><span>flask + numpy + scipy + pillow + requests</span></div>
+        <div class="bar-track"><div class="bar-fill light"></div></div>
+      </div>
+    </div>
+    <p class="muted" style="font-size:13.5px;">（比例僅示意：torch/torchvision 的 wheel 本身動輒數百 MB 起跳，其餘套件加總通常不到它的十分之一。）</p>
+  </section>
+
+  <section>
+    <p class="kicker">資料怎麼流動</p>
+    <h2>三個角色，各管各的事</h2>
+    <p>
+      關鍵想法：<b>把「跑模型」跟「處理業務邏輯／畫面」拆成兩個完全獨立的服務</b>，
+      中間只靠一個很小的 JSON 訊息溝通。
+    </p>
+    <div class="diagram">
+      <svg viewBox="0 0 820 300" xmlns="http://www.w3.org/2000/svg">
+        <!-- Browser -->
+        <rect x="10" y="90" width="180" height="120" rx="10" fill="#ffffff" stroke="#dde2e0"/>
+        <text x="100" y="130" text-anchor="middle" font-family="Space Grotesk" font-size="14" font-weight="600" fill="#141a1f">瀏覽器</text>
+        <text x="100" y="150" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" fill="#5b6670">你的電腦</text>
+        <text x="100" y="178" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#5b6670">上傳 CSV / 圖片</text>
+        <text x="100" y="194" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#5b6670">（不需要裝 Python）</text>
+
+        <!-- Frontend Space -->
+        <rect x="320" y="60" width="200" height="180" rx="10" fill="#e3f4f2" stroke="#0c8f88"/>
+        <text x="420" y="90" text-anchor="middle" font-family="Space Grotesk" font-size="14" font-weight="600" fill="#0c8f88">前端 Space</text>
+        <text x="420" y="108" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#0c8f88">wafer-defect-demo-frontend</text>
+        <text x="420" y="136" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3d6a66">flask · numpy · scipy</text>
+        <text x="420" y="152" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3d6a66">pillow · requests</text>
+        <text x="420" y="178" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3d6a66">解析 CSV / 良率規則</text>
+        <text x="420" y="194" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#3d6a66">畫面 / 存修正標籤</text>
+        <text x="420" y="220" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" font-weight="500" fill="#0c8f88">沒有 torch</text>
+
+        <!-- Model Space -->
+        <rect x="620" y="60" width="190" height="180" rx="10" fill="#faead9" stroke="#c9782e"/>
+        <text x="715" y="90" text-anchor="middle" font-family="Space Grotesk" font-size="14" font-weight="600" fill="#c9782e">模型 Space</text>
+        <text x="715" y="108" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#c9782e">wafer-defect-model</text>
+        <text x="715" y="136" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8a5622">torch</text>
+        <text x="715" y="152" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8a5622">torchvision</text>
+        <text x="715" y="178" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8a5622">載入 .pt 權重</text>
+        <text x="715" y="194" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#8a5622">跑 ResNet 推論</text>
+        <text x="715" y="220" text-anchor="middle" font-family="IBM Plex Mono" font-size="10.5" font-weight="500" fill="#c9782e">torch 只活在這裡</text>
+
+        <!-- Arrows -->
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#5b6670"/>
+          </marker>
+        </defs>
+        <line x1="190" y1="130" x2="315" y2="130" stroke="#5b6670" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <text x="252" y="118" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5b6670">multipart 上傳</text>
+
+        <line x1="520" y1="120" x2="615" y2="120" stroke="#0c8f88" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <text x="568" y="108" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#0c8f88">POST /predict_map</text>
+        <text x="568" y="120" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" fill="#3d6a66">{"wafer_map":[[..]]}</text>
+
+        <line x1="615" y1="150" x2="520" y2="150" stroke="#c9782e" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <text x="568" y="168" text-anchor="middle" font-family="IBM Plex Mono" font-size="9" fill="#c9782e">JSON 回傳</text>
+        <text x="568" y="180" text-anchor="middle" font-family="IBM Plex Mono" font-size="8.5" fill="#8a5622">{"predictions":[..]}</text>
+
+        <line x1="315" y1="180" x2="195" y2="180" stroke="#5b6670" stroke-width="1.4" marker-end="url(#arrow)"/>
+        <text x="255" y="200" text-anchor="middle" font-family="IBM Plex Mono" font-size="9.5" fill="#5b6670">渲染結果畫面</text>
+      </svg>
+      <p class="diagram-note">整趟旅程裡，「你的電腦」從頭到尾沒有執行任何 Python——運算全部發生在雲端的兩個容器裡。</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">回到你的問題</p>
+    <h2>Hugging Face Space 裡跑的是 venv 嗎？</h2>
+    <p>
+      更精確地說是 <b>Docker 容器</b>，觀念上比 venv 更徹底一層：
+    </p>
+    <div class="duo">
+      <div class="card teal">
+        <span class="tag">venv</span>
+        <h3>同一台機器，隔開套件</h3>
+        <ul>
+          <li>還是同一個作業系統、同一個檔案系統</li>
+          <li>只是把 Python 套件安裝路徑獨立出來</li>
+          <li>兩個 venv 之間仍共用 CPU / 記憶體 / 硬碟</li>
+        </ul>
+      </div>
+      <div class="card amber">
+        <span class="tag">docker container</span>
+        <h3>連「房間」都是分開的</h3>
+        <ul>
+          <li>每個 Space 都是自己專屬的最小系統環境</li>
+          <li>檔案系統、Python 環境、依賴套件完全獨立</li>
+          <li>兩個容器唯一的溝通方式就是網路上的 HTTP 請求</li>
+        </ul>
+      </div>
+    </div>
+    <p>
+      所以你的模型 Space 容器裡確實裝了 torch、也確實在裡面跑推論，
+      但那個「肥大」被永久關在那個容器裡，跟你本地端、跟前端 Space，都毫無關係。
+    </p>
+  </section>
+
+  <section>
+    <p class="kicker">為什麼這樣拆是對的</p>
+    <h2>只有真正需要重型工具的那一步，才配得到重型工具</h2>
+    <p>
+      這其實跟你 <span class="mono">app.py</span> 裡本來就有的良率規則邏輯是同一種精神：
+      良率 ≥ 95% 的 wafer 用規則就能判定「無缺陷」，完全不必浪費一次模型推論。
+      拆分成兩個 Space，只是把這個「按需求動用重型資源」的原則，
+      從「要不要跑模型」延伸到「要不要在這台機器上裝模型的依賴」。
+    </p>
+    <div class="callout">
+      <b>代價在哪：</b>多了一次網路來回，加上免費 Space 閒置會 sleep，
+      喚醒模型 Space 第一次呼叫可能要等 20–30 秒。用體積換來的，是速度上的一點點延遲——
+      對一個不是即時系統的內部分析工具來說，這筆交易通常划算。
+    </div>
+  </section>
+
+</div>
+
+<footer>
+  <div class="wrap">wafer-defect-demo · local (light) ⇄ Hugging Face Space (model)</div>
+</footer>
+
+<script>
+  const grid = document.getElementById('waferGrid');
+  // 9x9 wafer-like pattern: mostly pass, a ring of fails near one edge, a couple of scattered fails.
+  const pattern = [
+    0,0,1,1,1,1,1,0,0,
+    0,1,1,1,1,1,1,1,0,
+    1,1,1,1,1,1,1,1,1,
+    1,1,1,2,2,1,1,1,1,
+    1,1,2,2,2,2,1,1,1,
+    1,1,1,2,2,1,1,1,1,
+    1,1,1,1,1,1,1,1,1,
+    0,1,1,1,1,1,1,1,0,
+    0,0,1,1,1,1,1,0,0,
+  ];
+  pattern.forEach(v=>{
+    const d = document.createElement('div');
+    if(v===1) d.style.background='var(--grid-pass)';
+    else if(v===2) d.style.background='var(--grid-fail)';
+    grid.appendChild(d);
+  });
+</script>
+
+</body>
+</html>
